@@ -1,0 +1,2582 @@
+<!doctype html>
+<html lang="tr">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RED GAMES STUDIO TYCOON</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;background:#090d16;color:#fff;font-family:"Nunito",sans-serif;height:100%;overflow:hidden}
+    button{font-family:"Nunito",sans-serif}
+    button:focus-visible{outline:3px solid #f9d75e;outline-offset:3px}
+    .shell{max-width:none;padding:0;margin:0}
+
+    /* KENDİ OYUN ŞİRKETİNİ KUR */
+    #company-game{position:fixed;inset:0;background:#0a0f18;color:#eef3fb;display:flex;flex-direction:column}
+    #company-game .cg-head{position:absolute;top:0;left:0;right:0;z-index:5;padding:12px 18px;background:linear-gradient(180deg,rgba(7,11,20,.88) 0%,rgba(7,11,20,0) 100%);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;pointer-events:none}
+    #company-game .cg-stats{display:flex;gap:8px;flex-wrap:wrap}
+    #company-game .cg-stat{background:rgba(13,20,34,.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:11px;padding:8px 13px;font-size:13px;font-weight:800;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+    #company-game .cg-world{flex:1;position:relative;background:#0b1019;overflow:hidden}
+    #cg-canvas{display:block;width:100%;height:100%;outline:none}
+    #company-game .cg-crosshair{position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);pointer-events:none;opacity:.85}
+    #company-game .cg-crosshair:before,#company-game .cg-crosshair:after{content:'';position:absolute;background:#fff;border-radius:2px;box-shadow:0 0 4px #000}
+    #company-game .cg-crosshair:before{width:12px;height:2px;top:5px}
+    #company-game .cg-crosshair:after{height:12px;width:2px;left:5px}
+    #company-game .cg-hint{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);background:rgba(9,15,27,.88);backdrop-filter:blur(8px);border:1px solid rgba(224,166,75,.45);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:800;white-space:nowrap;max-width:92%;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.45);z-index:4}
+    #company-game .cg-overlay{position:absolute;inset:0;background:rgba(7,12,22,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:12}
+    #company-game .cg-panel{width:min(520px,100%);background:#141f33;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:24px;box-shadow:0 24px 65px rgba(0,0,0,.75);max-height:92vh;overflow-y:auto}
+    #company-game .cg-panel h3{margin:0 0 8px;font-size:23px;font-weight:900}
+    #company-game .cg-panel p{color:#bdcad9;line-height:1.55;font-size:14px}
+    #company-game .cg-panel input,#company-game .cg-panel textarea,.staff-select{width:100%;background:#0b1322;color:#f4f7fb;border:1px solid #3c4e66;border-radius:10px;padding:11px 12px;font:inherit;margin:6px 0 12px}
+    #company-game .cg-btn{border:0;border-radius:10px;background:#e0a64b;color:#181e27;font-weight:900;padding:11px 16px;cursor:pointer;margin:4px 5px 0 0;transition:.18s}
+    #company-game .cg-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+    #company-game .cg-btn:disabled{opacity:.45;cursor:not-allowed}
+    #company-game .cg-btn.secondary{background:#2d3d54;color:#f4f7fb}
+    #company-game .cg-bottom{position:absolute;bottom:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 18px;background:linear-gradient(0deg,rgba(7,11,20,.9) 0%,rgba(7,11,20,.4) 100%);color:#c4d1e2;font-size:12px;pointer-events:none}
+    #company-game .cg-hidden{display:none!important}
+    #company-game .cg-touch{position:absolute;left:16px;bottom:48px;z-index:6;display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,44px);gap:6px;touch-action:none}
+    #company-game .cg-touch button,#company-game .cg-action-touch{border:1px solid rgba(255,255,255,.28);background:rgba(10,20,36,.82);backdrop-filter:blur(6px);color:#fff;border-radius:12px;font-weight:900;font-size:16px;touch-action:none;user-select:none}
+    #company-game .cg-touch button:active,#company-game .cg-action-touch:active{background:#e0a64b;color:#111}
+    #company-game .cg-touch .up{grid-column:2}
+    #company-game .cg-touch .left{grid-column:1;grid-row:2}
+    #company-game .cg-touch .down{grid-column:2;grid-row:2}
+    #company-game .cg-touch .right{grid-column:3;grid-row:2}
+    #company-game .cg-action-touch{position:absolute;right:16px;bottom:52px;z-index:6;padding:14px 18px}
+    #company-game .cg-afk{position:absolute;top:56px;left:18px;z-index:5;background:rgba(10,18,32,.9);border:1px solid #e0a64b;border-radius:10px;padding:8px 13px;font-size:12px;font-weight:800;display:none}
+    #company-game .cg-world.is-sitting .cg-afk{display:block}
+    @media(min-width:900px){#company-game .cg-touch,#company-game .cg-action-touch{opacity:.65}}
+
+    #cg-phone-btn{position:absolute;top:12px;right:18px;z-index:8;border:1px solid rgba(255,255,255,.25);background:rgba(13,20,34,.88);backdrop-filter:blur(8px);color:#fff;border-radius:11px;padding:8px 13px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.35);transition:.18s}
+    #cg-phone-btn:hover{background:#e0a64b;color:#181e27}
+    .cam-flash{position:fixed;inset:0;background:#fff;z-index:250;pointer-events:none;opacity:0;transition:opacity .35s}
+    .gal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+    .gal-item{background:#09101c;border:1px solid #354761;border-radius:10px;overflow:hidden;font-size:11px}
+    .gal-item img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
+    .gal-item div{padding:5px 7px;display:flex;justify-content:space-between;align-items:center}
+    #tetris-canvas{background:#060c18;border:2px solid #3b82f6;border-radius:10px;display:block;margin:6px auto;box-shadow:0 0 18px rgba(59,130,246,.3)}
+    .tet-ctrl{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}
+    .tet-ctrl button{padding:9px 4px!important;margin:0!important;font-size:14px!important;background:#1e293b!important;color:#fff!important;border:1px solid #475569!important}
+    .tet-ctrl button:active{background:#e0a64b!important;color:#111!important}
+
+    #cg-computer-ui{position:absolute;inset:0;z-index:15;background:rgba(6,11,20,.9);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:14px}
+    #cg-code{min-height:105px;font-family:Consolas,monospace;resize:vertical}
+    #cg-output{background:#060d17;border:1px solid #35475e;border-radius:10px;padding:11px;min-height:46px;color:#86efac;font:13px Consolas,monospace;white-space:pre-wrap;margin-top:8px}
+
+    .staff-list{display:grid;gap:10px;margin:14px 0}
+    .staff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,1fr);gap:10px;align-items:center;padding:10px 12px;border:1px solid #3b4b63;border-radius:12px;background:#10192b}
+    .staff-name{font-weight:800;color:#f2f6ff}
+    .staff-role-note{display:block;font-size:11px;color:#9fb0c6;margin-top:2px}
+    .cg-panel .cg-small-note{font-size:12px;color:#b8c4d3;line-height:1.45}
+
+    /* ANA MENÜ VE TELEFON */
+    #mm{position:fixed;inset:0;z-index:100;display:flex;align-items:center;padding:0 7vw;background:linear-gradient(95deg,#050912f5 0%,#050912b5 42%,rgba(5,9,18,.15) 100%);color:#fff;transition:opacity .45s,transform .45s}
+    #mm.hide{opacity:0;transform:scale(1.03);pointer-events:none}
+    #mm .box{width:min(410px,92vw);animation:mmIn .7s both}
+    @keyframes mmIn{from{opacity:0;transform:translateX(-34px)}}
+    #mm h1{margin:0;font-size:clamp(34px,6vw,56px);line-height:1;letter-spacing:2px;font-weight:900}
+    #mm h1 b{color:#e23b3b}
+    #mm .tg{letter-spacing:8px;color:#e0a64b;font-weight:800;margin:6px 0 26px}
+    #mm button,.pc button{font:inherit;cursor:pointer;transition:.18s}
+    #mm .mb{display:block;width:100%;text-align:left;margin:8px 0;padding:13px 18px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.07);color:#fff;font-weight:800;letter-spacing:1.4px;backdrop-filter:blur(8px)}
+    #mm .mb:hover{background:#e23b3b;transform:translateX(8px);border-color:#e23b3b}
+    #mm .pn{animation:mmIn .35s both;background:rgba(13,21,35,.94);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:20px;margin-top:6px;backdrop-filter:blur(10px)}
+    #mm input,#mm select,.pc select{width:100%;padding:10px;margin:4px 0 11px;border-radius:9px;border:1px solid #3f4f66;background:#09101c;color:#fff;font:inherit}
+    #mm .pn button,.pc button{padding:8px 13px;margin:3px 4px 3px 0;border:0;border-radius:9px;background:#e0a64b;color:#181e27;font-weight:800}
+    #mm .pn button.on,.pc button.on{background:#e23b3b;color:#fff}
+
+    #ph{position:fixed;right:4vw;bottom:0;z-index:90;width:320px;height:620px;transform:translateY(110%);transition:transform .42s cubic-bezier(.2,.9,.2,1);pointer-events:none}
+    #ph.on{transform:translateY(-3vh);pointer-events:auto}
+    #ph .fr{height:100%;border-radius:42px;background:#0a0d13;padding:10px;box-shadow:0 0 0 2px #4a5568,0 26px 70px rgba(0,0,0,.82);position:relative}
+    #ph .nt{position:absolute;top:14px;left:50%;width:92px;height:22px;margin-left:-46px;background:#000;border-radius:14px;z-index:2}
+    #ph .sc{height:100%;border-radius:32px;overflow:hidden;background:linear-gradient(160deg,#1a2947,#341b47);display:flex;flex-direction:column;color:#fff}
+    .sb{display:flex;justify-content:space-between;padding:12px 22px 4px;font-size:12px;font-weight:800}
+    .pc{flex:1;overflow:auto;padding:10px 14px;font-size:13px}
+    .pc h4{margin:6px 0 8px;font-size:18px}
+    .pc h5{margin:12px 0 4px;color:#e0a64b}
+    .r{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+    .s{opacity:.72;font-size:12px;display:block}
+    .cd{background:rgba(255,255,255,.09);border-radius:12px;padding:10px;margin:8px 0}
+    .bar{height:5px;background:rgba(255,255,255,.16);border-radius:4px;margin:6px 0}
+    .bar i{display:block;height:100%;background:#4ade80;border-radius:4px}
+    .pc .pri{width:100%;padding:10px}
+    .hg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px;padding-top:24px}
+    .ic{background:none!important;color:#fff!important;text-align:center;padding:0!important;font-size:10px!important;font-weight:700!important}
+    .ic i{display:block;width:52px;height:52px;margin:0 auto 4px;border-radius:15px;font-style:normal;font-size:26px;line-height:52px;box-shadow:0 6px 14px rgba(0,0,0,.4);transition:.15s}
+    .ic:hover i{transform:scale(1.1)}
+    .hb{padding:8px;text-align:center}
+    .hb button{background:rgba(255,255,255,.18)!important;color:#fff!important;width:44%}
+    .rgt{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:200;background:rgba(12,20,34,.95);border:1px solid #e0a64b;color:#fff;padding:10px 18px;border-radius:12px;font:700 13px Nunito,sans-serif;animation:mmIn .3s both;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  </style>
+ </head>
+ <body>
+  <main class="shell">
+   <section id="company-game" aria-label="Kendi Oyun Şirketini Kur">
+    <div class="cg-head">
+      <div class="cg-stats">
+        <span class="cg-stat" id="cg-money">💵 500$</span>
+        <span class="cg-stat" id="cg-year">📅 2000 • Gün 1</span>
+        <span class="cg-stat" id="cg-skill">💻 Yazılım 0</span>
+        <span class="cg-stat" id="cg-energy">☕ Enerji %100</span>
+      </div>
+    </div>
+    <button id="cg-phone-btn" type="button">📱 Telefon (TAB)</button>
+    <div class="cg-world">
+      <canvas id="cg-canvas" tabindex="0" aria-label="Birinci şahıs 3D stüdyo"></canvas>
+      <div class="cg-crosshair"></div>
+      <div id="cg-afk-status" class="cg-afk">🪑 AFK modu açık • Otomatik kazanç işliyor</div>
+      <div class="cg-touch" aria-label="Dokunmatik hareket kontrolleri">
+        <button class="up" data-move="KeyW" aria-label="İleri">▲</button>
+        <button class="left" data-move="KeyA" aria-label="Sola">◀</button>
+        <button class="down" data-move="KeyS" aria-label="Geri">▼</button>
+        <button class="right" data-move="KeyD" aria-label="Sağa">▶</button>
+      </div>
+      <button id="cg-touch-action" class="cg-action-touch" type="button">E • Etkileşim</button>
+      <div id="cg-hint" class="cg-hint">Şirketini kurduktan sonra WASD ile hareket et</div>
+
+      <div id="cg-start" class="cg-overlay">
+        <div class="cg-panel">
+          <div style="font-size:34px">🖥️</div>
+          <h3>İlk günün: 2000</h3>
+          <p>Küçük ama sıcak bir odada, yalnızca <b>500$</b> ile başlıyorsun. Önce ikinci el bilgisayarını kur, yazılım öğren ve ilk oyununu yayımla.</p>
+          <label for="cg-company-name">Şirketinin adı</label>
+          <input id="cg-company-name" maxlength="28" value="RED GAMES STUDIO">
+          <button class="cg-btn" id="cg-start-btn">Şirketimi kur ve oyna</button>
+        </div>
+      </div>
+
+      <div id="cg-office-ui" class="cg-overlay cg-hidden">
+        <div class="cg-panel">
+          <h3 id="cg-office-title">🏢 Yeni ofis</h3>
+          <p id="cg-office-desc">Şirketini büyütmek için daha geniş bir ofis satın al. Çalışanların burada masalarında çalışacak.</p>
+          <div id="cg-office-buy">
+            <b>Yeni ofis bedeli: 2.000$</b>
+            <p>Geniş çalışma alanı, modern masalar ve profesyonel stüdyo.</p>
+            <button class="cg-btn" id="cg-buy-office">Ofisi satın al (2.000$)</button>
+          </div>
+          <div id="cg-office-manage" class="cg-hidden">
+            <b id="cg-employee-count">Çalışan: 0 / 4</b>
+            <p>Bir çalışan 500$ tutar. Görev atanmış her çalışan her <b>5 saniyede bir 50$</b> kazandırır.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+              <button class="cg-btn" id="cg-buy-office2">🏢 2. Ofis: Modern Teknoloji (5.000$)</button>
+              <button class="cg-btn" id="cg-buy-office3">🏛️ 3. Ofis: İki Katlı Plaza (15.000$)</button>
+              <button class="cg-btn" id="cg-buy-office4">🏙️ 4. Ofis: Lüks Gökdelen (35.000$)</button>
+            </div>
+            <p id="cg-office2-status" class="cg-small-note">Ofislerini yükselterek kapasiteni 34 çalışana kadar çıkarabilirsin.</p>
+            <button class="cg-btn" id="cg-hire-worker">Çalışan işe al (500$)</button>
+            <div id="cg-staff-list" class="staff-list" aria-label="Çalışan görevleri"></div>
+            <p class="cg-small-note">Aktif çalışan geliri: +50$ / 5 sn • Günlük maaş: 50$/kişi.</p>
+            <button class="cg-btn secondary" id="cg-leave-office">Başlangıç odasına dön</button>
+          </div>
+          <p id="cg-office-status" aria-live="polite"></p>
+          <button class="cg-btn secondary" id="cg-close-office">Kapat ✕</button>
+        </div>
+      </div>
+
+      <div id="cg-computer-ui" class="cg-hidden">
+        <div class="cg-panel">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <h3 id="cg-pc-title">Geliştirme bilgisayarı</h3>
+            <button class="cg-btn secondary" id="cg-close-pc">Kapat ✕</button>
+          </div>
+          <p id="cg-pc-intro">2000 yılının klasik CRT bilgisayarı. Yazılım öğrenmeye başlamak için hazır.</p>
+          <div id="cg-lesson">
+            <b>İlk ders: Ekrana mesaj yazdır</b>
+            <p>Aşağıdaki kodu editöre yaz ve çalıştır:</p>
+            <code>print("Merhaba oyun dünyası!")</code>
+            <textarea id="cg-code" spellcheck="false">print("Merhaba oyun dünyası!")</textarea>
+            <button class="cg-btn" id="cg-run-code">Kodu çalıştır</button>
+            <div id="cg-output">Program çıktısı burada görünecek.</div>
+          </div>
+          <div id="cg-project" class="cg-hidden">
+            <b id="cg-project-title">İlk oyunun: Mini Macera</b>
+            <p id="cg-project-desc">İlk küçük oyun prototipini hazırladın. Şimdi yayınlayarak ilk gelirini elde edebilirsin.</p>
+            <button class="cg-btn" id="cg-release">Oyunu yayınla (+150$)</button>
+            <button class="cg-btn" id="cg-next-project">Yeni oyun geliştir (100$)</button>
+            <p id="cg-project-loop-note" class="cg-hidden">Yeni oyunun hazır. Yayınla, gelir elde et ve şirketini büyütmeye devam et!</p>
+          </div>
+          <p id="cg-pc-status" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+    <div class="cg-bottom">
+      <span><b>Kontroller:</b> WASD • Fare • Space • Shift • E • TAB: telefon • ESC: duraklat</span>
+      <span id="cg-objective">Hedef: 420$ karşılığında ikinci el bilgisayar satın al.</span>
+    </div>
+   </section>
+  </main>
+
+  <script type="module">
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+  (()=>{
+    const canvas = document.getElementById('cg-canvas');
+    if(!canvas) return;
+    const $ = id => document.getElementById(id);
+    const world = canvas.parentElement;
+
+    // --- OYUN DURUMU VE KAYIT ---
+    const state = {
+      money: 500, year: 2000, day: 1, skill: 0, energy: 100,
+      hasPC: false, lessonDone: false, released: false,
+      projects: 1, projectReady: false, booksRead: 0, inspiration: 0, radioOn: false,
+      officeOwned: false, office2Owned: false, office3Owned: false, office4Owned: false,
+      currentRoom: 0, // 0: Başlangıç, 1: 1. Ofis, 2: 2. Ofis, 3: 3. Ofis, 4: 4. Ofis
+      employees: 0, staff: [], sitting: false, afkSeconds: 0, staffPayTimer: 0,
+      photos: [], tetrisBest: 0,
+      company: 'RED GAMES STUDIO', player: 'Oyuncu',
+      locked: false, near: null,
+      saveKey: 'rgs_slot_' + (localStorage.getItem('rgs_active') || '1')
+    };
+
+    let loadedSave = false;
+    try {
+      const nw = JSON.parse(localStorage.getItem('rgs_new') || 'null');
+      if(nw) {
+        localStorage.removeItem('rgs_new');
+        state.company = nw.company;
+        state.player = nw.player;
+        state.money = nw.money;
+        loadedSave = false;
+        const { locked, near, currentRoom, ...data } = state;
+        localStorage.setItem(state.saveKey, JSON.stringify({ ...data, version: 1 }));
+      } else {
+        const saved = JSON.parse(localStorage.getItem(state.saveKey) || 'null');
+        if(saved && saved.version === 1) {
+          Object.assign(state, saved);
+          if(!Array.isArray(state.staff)) state.staff = [];
+          if(!Array.isArray(state.photos)) state.photos = [];
+          while(state.staff.length < state.employees) {
+            state.staff.push({ id: 'legacy-' + state.staff.length, name: ['Ece','Mert','Deniz','Ada','Can','Mina','Arda','Lina'][state.staff.length % 8], role: null });
+          }
+          state.staff = state.staff.slice(0, 34);
+          state.employees = state.staff.length;
+          loadedSave = true;
+        }
+      }
+    } catch {}
+
+    state.sitting = false;
+    state.afkSeconds = 0;
+    state.currentRoom = 0;
+
+    function save() {
+      const { locked, near, currentRoom, ...data } = state;
+      try {
+        localStorage.setItem(state.saveKey, JSON.stringify({ ...data, version: 1 }));
+      } catch {
+        // Fotoğraf kotası dolarsa en eski fotoğrafı silip tekrar kaydet
+        if(state.photos.length > 1) { state.photos.pop(); save(); return; }
+      }
+      hud();
+    }
+
+    const staffNames = ['Ece','Mert','Deniz','Ada','Can','Mina','Arda','Lina','Selin','Burak','Naz','Kaan','Elif','Emre','Zeynep','Onur','Ayşe','Tolga','Derya','Cem','Sena','Yiğit','Bora','İrem','Kuzey','Defne','Eren','Melis','Ozan','Yasemin','Kerem','Nehir','Doruk','Aslı'];
+    const roleData = {
+      programmer: { label: 'Programcı', daily: 130 },
+      artist: { label: 'Tasarımcı', daily: 90 },
+      tester: { label: 'Test uzmanı', daily: 75 },
+      marketer: { label: 'Pazarlamacı', daily: 110 }
+    };
+
+    function renderStaff() {
+      const wrap = $('cg-staff-list');
+      if(!wrap) return;
+      wrap.replaceChildren();
+      if(!state.staff.length) {
+        const p = document.createElement('p');
+        p.className = 'cg-small-note';
+        p.textContent = 'Henüz çalışan yok. Önce çalışan işe al.';
+        wrap.append(p);
+        return;
+      }
+      state.staff.forEach((worker) => {
+        const row = document.createElement('div');
+        row.className = 'staff-row';
+        const info = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'staff-name';
+        name.textContent = worker.name;
+        const note = document.createElement('span');
+        note.className = 'staff-role-note';
+        note.textContent = worker.role ? roleData[worker.role].label + ' olarak çalışıyor' : 'Görev bekliyor';
+        info.append(name, note);
+
+        const select = document.createElement('select');
+        select.className = 'staff-select';
+        select.setAttribute('aria-label', worker.name + ' görev ata');
+        [['','Görev ata…'],['programmer','Programcı'],['artist','Tasarımcı'],['tester','Test uzmanı'],['marketer','Pazarlamacı']].forEach(([val, lbl]) => {
+          const o = document.createElement('option');
+          o.value = val;
+          o.textContent = lbl;
+          select.append(o);
+        });
+        select.value = worker.role || '';
+        select.addEventListener('change', () => {
+          worker.role = select.value || null;
+          save();
+          renderStaff();
+          $('cg-office-status').textContent = worker.role ? worker.name + ' artık ' + roleData[worker.role].label + ' görevinde.' : 'Görev kaldırıldı.';
+        });
+        row.append(info, select);
+        wrap.append(row);
+      });
+    }
+
+    function advanceDays(amount) {
+      let grossTotal = 0, wageTotal = 0;
+      for(let d = 0; d < amount; d++) {
+        const assigned = state.staff.filter(w => w.role && roleData[w.role]);
+        const gross = assigned.reduce((sum, w) => sum + roleData[w.role].daily, 0);
+        const wages = state.staff.length * 50;
+        state.money += gross - wages;
+        grossTotal += gross;
+        wageTotal += wages;
+        bk(gross, wages);
+        state.day++;
+        state.year = 2000 + Math.floor((state.day - 1) / 30);
+      }
+      return { gross: grossTotal, wages: wageTotal, net: grossTotal - wageTotal };
+    }
+    const capNow = () => state.office4Owned ? 34 : state.office3Owned ? 22 : state.office2Owned ? 8 : 4;
+
+    function hud() {
+      $('cg-money').textContent = '💵 ' + state.money.toLocaleString('tr-TR') + '$';
+      $('cg-year').textContent = '📅 ' + state.year + ' • Gün ' + state.day;
+      $('cg-skill').textContent = '💻 Yazılım ' + state.skill;
+      if($('cg-energy')) $('cg-energy').textContent = '☕ Enerji %' + (state.energy ?? 100);
+      $('cg-objective').textContent = !state.hasPC
+        ? 'Hedef: İkinci el bilgisayar satın al (420$).'
+        : !state.lessonDone
+        ? 'Hedef: Bilgisayarda ilk yazılım dersini tamamla.'
+        : !state.released
+        ? 'Hedef: İlk oyununu yayınla.'
+        : !state.officeOwned
+        ? 'Hedef: 2.000$ biriktir ve 1. Ofisi (Indie Stüdyo) satın al.'
+        : state.employees < 4
+        ? 'Hedef: Yeni ofiste çalışan işe al (' + state.employees + '/4).'
+        : state.staff.some(w => !w.role)
+        ? 'Hedef: Çalışanlarına görev ata (her 5 sn +50$).'
+        : 'Hedef: Yeni ofis katları aç, oyunlar yayımla ve stüdyonu zirveye taşı.';
+    }
+
+    hud();
+    $('cg-company-name').value = state.company;
+    if(loadedSave) {
+      $('cg-start').querySelector('h3').textContent = 'Şirketine tekrar hoş geldin!';
+      $('cg-start').querySelector('p').innerHTML = 'Kayıtlı ilerlemen bulundu. <b>' + state.money + '$</b> paran ve ' + state.year + ' yılındaki şirketin seni bekliyor.';
+      $('cg-start-btn').textContent = 'Kaldığım yerden devam et';
+    }
+
+    // --- THREE.JS SAHNE VE GELİŞMİŞ AYDINLATMA ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x8fa8bd);
+    scene.fog = new THREE.Fog(0x8fa8bd, 12, 36);
+
+    const camera = new THREE.PerspectiveCamera(68, 1, 0.1, 140);
+    camera.position.set(0.4, 1.65, 2.8);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+
+    // Ortam ve gün ışığı
+    const hemiLight = new THREE.HemisphereLight(0xeef6ff, 0x4d3c2e, 0.95);
+    scene.add(hemiLight);
+
+    const sun = new THREE.DirectionalLight(0xffe7c4, 1.9);
+    sun.position.set(-7, 8, 2);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.bias = -0.0005;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 35;
+    sun.shadow.camera.left = -10;
+    sun.shadow.camera.right = 10;
+    sun.shadow.camera.top = 10;
+    sun.shadow.camera.bottom = -10;
+    scene.add(sun);
+
+    // --- PROSEDÜREL DOKU (CANVASTEXTURE) ÜRETİCİLERİ ---
+    function makeWoodTexture(baseHex, streakHex, rx = 2, ry = 2) {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = baseHex;
+      ctx.fillRect(0, 0, 512, 512);
+      for(let i = 0; i < 420; i++) {
+        ctx.strokeStyle = streakHex;
+        ctx.globalAlpha = 0.08 + Math.random() * 0.14;
+        ctx.lineWidth = 1 + Math.random() * 3;
+        ctx.beginPath();
+        const y = Math.random() * 512;
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(170, y + (Math.random() - 0.5) * 18, 340, y + (Math.random() - 0.5) * 18, 512, y);
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(rx, ry);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makePlasterTexture(baseHex, rx = 3, ry = 2) {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = baseHex;
+      ctx.fillRect(0, 0, 256, 256);
+      for(let i = 0; i < 2400; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(30,22,15,0.04)';
+        ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(rx, ry);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeRugTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 512;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#4e3f35';
+      ctx.fillRect(0, 0, 512, 512);
+      ctx.strokeStyle = '#b98b56';
+      ctx.lineWidth = 16;
+      ctx.strokeRect(24, 24, 464, 464);
+      ctx.strokeStyle = '#7c5338';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(46, 46, 420, 420);
+      // Geometrik kilim motifleri
+      ctx.fillStyle = '#8d5b3e';
+      for(let x = 90; x <= 422; x += 83) {
+        for(let y = 90; y <= 422; y += 83) {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillRect(-16, -16, 32, 32);
+          ctx.fillStyle = '#cfa36e';
+          ctx.fillRect(-7, -7, 14, 14);
+          ctx.fillStyle = '#8d5b3e';
+          ctx.restore();
+        }
+      }
+      // Dokuma iplik efekti
+      for(let i = 0; i < 3500; i++) {
+        ctx.fillStyle = 'rgba(255,255,255,0.04)';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 1);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeKeyboardTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 192;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#b9b4a6';
+      ctx.fillRect(0, 0, 512, 192);
+      ctx.fillStyle = '#dfd9ca';
+      const rows = [14, 14, 13, 12, 6];
+      rows.forEach((cols, r) => {
+        const y = 14 + r * 33;
+        const keyW = (484 - (cols - 1) * 4) / cols;
+        for(let k = 0; k < cols; k++) {
+          const x = 14 + k * (keyW + 4);
+          ctx.fillStyle = (r === 4 && k === 2) ? '#d5cfc0' : '#ebe6d8';
+          ctx.beginPath();
+          ctx.roundRect(x, y, keyW, 27, 4);
+          ctx.fill();
+          ctx.strokeStyle = '#8d8778';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      });
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeMonitorScreenTexture(active = true, modern = false) {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 384;
+      const ctx = c.getContext('2d');
+      if(!active) {
+        ctx.fillStyle = '#141a18';
+        ctx.fillRect(0, 0, 512, 384);
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+      }
+      ctx.fillStyle = modern ? '#0d1726' : '#0b221d';
+      ctx.fillRect(0, 0, 512, 384);
+      // Üst pencere çubuğu
+      ctx.fillStyle = modern ? '#1e293b' : '#184e42';
+      ctx.fillRect(0, 0, 512, 32);
+      ctx.fillStyle = '#e0a64b';
+      ctx.font = 'bold 15px Consolas, monospace';
+      ctx.fillText(modern ? 'RED ENGINE IDE v3.4 - GameProject.cpp' : 'MS-DOS / STUDIO IDE 2000', 14, 21);
+      // Kod satırları
+      const lines = [
+        '#include "GameEngine.h"',
+        'void InitStudio() {',
+        '   Player.money = 500;',
+        '   Engine.SetQuality(ULTRA);',
+        '   RenderWorld(3D_MESH);',
+        '}',
+        '> Derleme basarili! FPS: 60'
+      ];
+      lines.forEach((ln, i) => {
+        ctx.fillStyle = i === 6 ? '#4ade80' : (i % 2 ? '#7dd3fc' : '#e2e8f0');
+        ctx.fillText(ln, 20, 68 + i * 32);
+      });
+      // Mini oyun önizleme penceresi
+      ctx.fillStyle = '#132a46';
+      ctx.fillRect(300, 190, 185, 160);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(300, 190, 185, 160);
+      ctx.fillStyle = '#f8ca58';
+      ctx.beginPath();
+      ctx.arc(392, 265, 24, 0, Math.PI * 2);
+      ctx.fill();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makePosterTexture(title, accent) {
+      const c = document.createElement('canvas');
+      c.width = 384; c.height = 512;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 384, 512);
+      grad.addColorStop(0, '#16213e');
+      grad.addColorStop(1, accent);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 384, 512);
+      // Geometrik sanat çizimi
+      ctx.fillStyle = '#f8ca58';
+      ctx.beginPath();
+      ctx.arc(192, 210, 88, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.moveTo(40, 360);
+      ctx.lineTo(150, 220);
+      ctx.lineTo(250, 360);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(160, 360);
+      ctx.lineTo(270, 245);
+      ctx.lineTo(360, 360);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 30px Nunito, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(title, 192, 435);
+      ctx.font = 'bold 16px Nunito, sans-serif';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText('RED GAMES ARCHIVE', 192, 468);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeBookSpineTexture(color, title) {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, 64, 256);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(6, 22, 52, 6);
+      ctx.fillRect(6, 228, 52, 6);
+      ctx.save();
+      ctx.translate(32, 130);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(title, 0, 5);
+      ctx.restore();
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    // --- MATERYALLER ---
+    const mat = (color, rough = 0.8, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: rough }, extra));
+    const oakWoodMat = new THREE.MeshStandardMaterial({ map: makeWoodTexture('#9c724c', '#5e3f24', 2, 2), roughness: 0.68 });
+    const walnutWoodMat = new THREE.MeshStandardMaterial({ map: makeWoodTexture('#593b26', '#2b1a0e', 2, 2), roughness: 0.62 });
+    const floorParkeMat = new THREE.MeshStandardMaterial({ map: makeWoodTexture('#7a583b', '#47301d', 6, 6), roughness: 0.72 });
+    const wallPlasterMat = new THREE.MeshStandardMaterial({ map: makePlasterTexture('#d2c7b4', 4, 2), roughness: 0.94 });
+    const wallAccentMat = new THREE.MeshStandardMaterial({ map: makePlasterTexture('#c3b6a0', 4, 2), roughness: 0.94 });
+    const beigePlastic = mat(0xd8d2c1, 0.48);
+    const darkMetal = mat(0x2d343d, 0.38, { metalness: 0.75 });
+    const chromeMetal = mat(0xcbd5e1, 0.22, { metalness: 0.88 });
+    const darkLeather = mat(0x262b33, 0.55);
+    const fabricSlate = mat(0x475569, 0.88);
+    const ceramicWhite = mat(0xf1f5f9, 0.25);
+
+    const crtScreenOffMat = new THREE.MeshStandardMaterial({ map: makeMonitorScreenTexture(false), roughness: 0.2 });
+    const crtScreenOnMat = new THREE.MeshStandardMaterial({
+      map: makeMonitorScreenTexture(true, false),
+      emissive: 0x2dd4bf,
+      emissiveMap: makeMonitorScreenTexture(true, false),
+      emissiveIntensity: 0.65,
+      roughness: 0.2
+    });
+    const modernScreenMat = new THREE.MeshStandardMaterial({
+      map: makeMonitorScreenTexture(true, true),
+      emissive: 0x38bdf8,
+      emissiveMap: makeMonitorScreenTexture(true, true),
+      emissiveIntensity: 0.6,
+      roughness: 0.18
+    });
+
+    // --- YARDIMCI ORGANİK MODEL OLUŞTURUCULAR ---
+    function addMesh(parent, geo, material, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, cast = true) {
+      const m = new THREE.Mesh(geo, material);
+      m.position.set(x, y, z);
+      m.rotation.set(rx, ry, rz);
+      m.castShadow = cast;
+      m.receiveShadow = true;
+      parent.add(m);
+      return m;
+    }
+
+    // Yumuşak köşeli (pahlı) kutu geometrisi
+    function roundedBoxGeo(w, h, d, r = 0.03) {
+      const shape = new THREE.Shape();
+      const hw = w / 2 - r, hh = h / 2 - r;
+      shape.moveTo(-hw, -hh - r);
+      shape.lineTo(hw, -hh - r);
+      shape.quadraticCurveTo(hw + r, -hh - r, hw + r, -hh);
+      shape.lineTo(hw + r, hh);
+      shape.quadraticCurveTo(hw + r, hh + r, hw, hh + r);
+      shape.lineTo(-hw, hh + r);
+      shape.quadraticCurveTo(-hw - r, hh + r, -hw - r, hh);
+      shape.lineTo(-hw - r, -hh);
+      shape.quadraticCurveTo(-hw - r, -hh - r, -hw, -hh - r);
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth: Math.max(0.005, d - r * 2),
+        bevelEnabled: true,
+        bevelSegments: 3,
+        steps: 1,
+        bevelSize: r,
+        bevelThickness: r
+      });
+      geo.center();
+      return geo;
+    }
+
+    // Ergonomik tekerlekli çalışma koltuğu
+    function buildErgonomicChair(parent, x, y, z, ry = 0, seatMat = darkLeather) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      // 5 kollu yıldız ayak + tekerlekler
+      for(let i = 0; i < 5; i++) {
+        const ang = (i * Math.PI * 2) / 5;
+        const leg = addMesh(g, new THREE.CylinderGeometry(0.022, 0.026, 0.3, 10), darkMetal, Math.cos(ang) * 0.14, 0.07, Math.sin(ang) * 0.14, 0, -ang, Math.PI / 2 - 0.14);
+        addMesh(g, new THREE.SphereGeometry(0.032, 10, 10), darkMetal, Math.cos(ang) * 0.27, 0.032, Math.sin(ang) * 0.27);
+      }
+      // Amortisör orta gövde
+      addMesh(g, new THREE.CylinderGeometry(0.035, 0.042, 0.36, 14), chromeMetal, 0, 0.24, 0);
+      // Kavisli oturak minderi
+      addMesh(g, roundedBoxGeo(0.54, 0.09, 0.52, 0.035), seatMat, 0, 0.45, 0);
+      // Sırt bağlantı kolu
+      addMesh(g, roundedBoxGeo(0.07, 0.42, 0.04, 0.015), darkMetal, 0, 0.66, 0.25, -0.15, 0, 0);
+      // Bel destekli sırtlık
+      addMesh(g, roundedBoxGeo(0.5, 0.56, 0.08, 0.035), seatMat, 0, 0.88, 0.23, -0.1, 0, 0);
+      // Kolçaklar
+      for(const sx of [-1, 1]) {
+        addMesh(g, new THREE.CylinderGeometry(0.02, 0.02, 0.22, 8), darkMetal, sx * 0.28, 0.56, 0.02);
+        addMesh(g, roundedBoxGeo(0.06, 0.035, 0.28, 0.015), darkLeather, sx * 0.28, 0.67, 0.02);
+      }
+      parent.add(g);
+      return g;
+    }
+
+    // Organik seramik saksı bitkisi (LatheGeometry)
+    function buildOrganicPlant(parent, x, y, z, scale = 1) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.scale.setScalar(scale);
+      const pts = [
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(0.14, 0),
+        new THREE.Vector2(0.19, 0.16),
+        new THREE.Vector2(0.21, 0.34),
+        new THREE.Vector2(0.18, 0.36),
+        new THREE.Vector2(0.17, 0.31)
+      ];
+      addMesh(g, new THREE.LatheGeometry(pts, 20), mat(0x9a5b3c, 0.55), 0, 0, 0);
+      addMesh(g, new THREE.CylinderGeometry(0.17, 0.17, 0.04, 16), mat(0x2d2118, 0.95), 0, 0.31, 0);
+      const leafMat1 = mat(0x3a6b42, 0.72);
+      const leafMat2 = mat(0x4d8554, 0.68);
+      for(let i = 0; i < 9; i++) {
+        const ang = (i * Math.PI * 2) / 9;
+        const tilt = 0.35 + (i % 3) * 0.24;
+        const h = 0.36 + (i % 2) * 0.14;
+        const stem = new THREE.Group();
+        stem.position.set(Math.cos(ang) * 0.05, 0.32, Math.sin(ang) * 0.05);
+        stem.rotation.set(Math.sin(ang) * tilt, -ang, -Math.cos(ang) * tilt);
+        addMesh(stem, new THREE.CylinderGeometry(0.01, 0.015, h, 8), leafMat1, 0, h / 2, 0);
+        const blade = addMesh(stem, new THREE.SphereGeometry(0.09, 10, 8), i % 2 ? leafMat1 : leafMat2, 0.04, h, 0, 0.3, 0, -0.5);
+        blade.scale.set(1.7, 0.18, 0.75);
+        g.add(stem);
+      }
+      parent.add(g);
+      return g;
+    }
+
+    // Tornalanmış abajurlu masa lambası (LatheGeometry)
+    function buildTableLamp(parent, x, y, z, withLight = false) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      const basePts = [
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(0.11, 0),
+        new THREE.Vector2(0.1, 0.03),
+        new THREE.Vector2(0.04, 0.07),
+        new THREE.Vector2(0.025, 0.22),
+        new THREE.Vector2(0.035, 0.26)
+      ];
+      addMesh(g, new THREE.LatheGeometry(basePts, 18), chromeMetal, 0, 0, 0);
+      const shadeMat = mat(0xe6c794, 0.85, { emissive: 0xffb85c, emissiveIntensity: 0.35, side: THREE.DoubleSide });
+      addMesh(g, new THREE.CylinderGeometry(0.11, 0.18, 0.22, 20, 1, true), shadeMat, 0, 0.34, 0);
+      if(withLight) {
+        const bulb = new THREE.PointLight(0xffcb80, 14, 5, 2);
+        bulb.position.set(0, 0.32, 0);
+        g.add(bulb);
+      }
+      parent.add(g);
+      return g;
+    }
+
+    // Detaylı klasik CRT bilgisayar seti (2000 yılı)
+    const pcParts = [];
+    function buildCRTComputer(parent, x, y, z, ry = 0) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      function pMesh(geo, m, px, py, pz, rx = 0, pry = 0, rz = 0) {
+        const obj = addMesh(g, geo, m, px, py, pz, rx, pry, rz);
+        pcParts.push(obj);
+        return obj;
+      }
+      // Monitör döner standı
+      pMesh(new THREE.CylinderGeometry(0.18, 0.22, 0.04, 18), beigePlastic, 0, 0.02, -0.05);
+      pMesh(new THREE.CylinderGeometry(0.09, 0.11, 0.07, 14), beigePlastic, 0, 0.06, -0.05);
+      // Monitör ön çerçeve & arka tüp gövdesi
+      pMesh(roundedBoxGeo(0.76, 0.64, 0.24, 0.035), beigePlastic, 0, 0.4, 0.02);
+      pMesh(roundedBoxGeo(0.56, 0.48, 0.32, 0.04), beigePlastic, 0, 0.4, -0.2);
+      // Kavisli cam ekran
+      const scrMesh = pMesh(new THREE.BoxGeometry(0.6, 0.46, 0.02), crtScreenOffMat, 0, 0.41, 0.135);
+      // Güç LED'i ve düğmeler
+      pMesh(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 10), mat(0x22c55e, 0.3, { emissive: 0x22c55e, emissiveIntensity: 0.9 }), 0.28, 0.13, 0.14, Math.PI / 2);
+      // Yatay masaüstü bilgisayar kasası (monitör sağında)
+      pMesh(roundedBoxGeo(0.36, 0.56, 0.62, 0.025), beigePlastic, 0.68, 0.28, -0.04);
+      pMesh(roundedBoxGeo(0.3, 0.12, 0.02, 0.008), mat(0xb8b1a0, 0.6), 0.68, 0.44, 0.27);
+      pMesh(new THREE.BoxGeometry(0.18, 0.022, 0.025), darkMetal, 0.68, 0.44, 0.275); // Disket sürücü
+      // Klavye (tuş dokulu)
+      const kbMat = new THREE.MeshStandardMaterial({ map: makeKeyboardTexture(), roughness: 0.65 });
+      pMesh(roundedBoxGeo(0.66, 0.032, 0.24, 0.01), kbMat, 0, 0.018, 0.38, 0.06);
+      // Kavisli fare + mousepad
+      pMesh(roundedBoxGeo(0.28, 0.008, 0.24, 0.005), mat(0x284b63, 0.85), 0.48, 0.004, 0.38);
+      const mouse = pMesh(new THREE.SphereGeometry(0.055, 14, 10), beigePlastic, 0.48, 0.024, 0.38);
+      mouse.scale.set(0.85, 0.55, 1.35);
+
+      parent.add(g);
+      return { group: g, screenMesh: scrMesh };
+    }
+
+    // Modern ince çift monitörlü çalışma istasyonu (1, 2 ve 3. ofisler için)
+    function buildModernWorkstation(parent, x, y, z, ry = 0) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      // Yuvarlatılmış masa tablası + çelik ayaklar + kablo kanalı
+      addMesh(g, roundedBoxGeo(1.75, 0.06, 0.86, 0.02), oakWoodMat, 0, 0.75, 0);
+      for(const sx of [-0.76, 0.76]) {
+        addMesh(g, new THREE.CylinderGeometry(0.028, 0.028, 0.74, 10), darkMetal, sx, 0.37, -0.32);
+        addMesh(g, new THREE.CylinderGeometry(0.028, 0.028, 0.74, 10), darkMetal, sx, 0.37, 0.32);
+        addMesh(g, roundedBoxGeo(0.06, 0.03, 0.74, 0.01), darkMetal, sx, 0.02, 0);
+      }
+      addMesh(g, roundedBoxGeo(1.4, 0.26, 0.03, 0.01), darkMetal, 0, 0.56, -0.35);
+
+      // İnce çerçeveli modern monitör
+      addMesh(g, roundedBoxGeo(0.22, 0.02, 0.18, 0.008), darkMetal, 0, 0.79, -0.22);
+      addMesh(g, new THREE.CylinderGeometry(0.022, 0.025, 0.24, 10), darkMetal, 0, 0.91, -0.24);
+      addMesh(g, roundedBoxGeo(0.76, 0.44, 0.035, 0.012), darkMetal, 0, 1.12, -0.21);
+      addMesh(g, new THREE.BoxGeometry(0.71, 0.39, 0.01), modernScreenMat, 0, 1.12, -0.19);
+
+      // Klavye, fare ve kahve kupası
+      const kbMat = new THREE.MeshStandardMaterial({ map: makeKeyboardTexture(), roughness: 0.6 });
+      addMesh(g, roundedBoxGeo(0.54, 0.02, 0.2, 0.006), kbMat, -0.05, 0.79, 0.12, 0.04);
+      const ms = addMesh(g, new THREE.SphereGeometry(0.045, 12, 8), darkMetal, 0.34, 0.79, 0.12);
+      ms.scale.set(0.85, 0.5, 1.3);
+      addMesh(g, new THREE.CylinderGeometry(0.042, 0.038, 0.1, 14), ceramicWhite, -0.58, 0.83, 0.08);
+      parent.add(g);
+      return g;
+    }
+
+    // Gerçekçi pervazlı, menteşeli, cam/ahşap panelli kapı modeli
+    function buildRealisticDoor(parent, x, y, z, ry = 0, style = 'wood') {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      const frameMat = style === 'glass' ? darkMetal : walnutWoodMat;
+      const leafMat = style === 'glass' ? mat(0x1e293b, 0.4, { metalness: 0.5 }) : oakWoodMat;
+
+      // Dış kasa ve dekoratif pervazlar (sol, sağ, üst)
+      addMesh(g, roundedBoxGeo(0.11, 2.48, 0.18, 0.015), frameMat, -0.56, 1.24, 0);
+      addMesh(g, roundedBoxGeo(0.11, 2.48, 0.18, 0.015), frameMat, 0.56, 1.24, 0);
+      addMesh(g, roundedBoxGeo(1.24, 0.11, 0.18, 0.015), frameMat, 0, 2.44, 0);
+      // Eşik çıtası
+      addMesh(g, roundedBoxGeo(1.06, 0.025, 0.16, 0.006), chromeMetal, 0, 0.012, 0);
+
+      // Kapı kanadı
+      addMesh(g, roundedBoxGeo(1.0, 2.36, 0.065, 0.012), leafMat, 0, 1.2, 0.01);
+
+      if(style === 'glass') {
+        // Modern cam bölme ve alüminyum kayıtlar
+        const glassPane = mat(0x93c5fd, 0.1, { transparent: true, opacity: 0.42, metalness: 0.2 });
+        addMesh(g, new THREE.BoxGeometry(0.76, 1.85, 0.02), glassPane, 0, 1.28, 0.01);
+        addMesh(g, roundedBoxGeo(0.8, 0.04, 0.075, 0.008), darkMetal, 0, 1.15, 0.01);
+      } else {
+        // Klasik kabartmalı ahşap kapı göbek panelleri (üst ve alt)
+        addMesh(g, roundedBoxGeo(0.72, 0.92, 0.082, 0.014), walnutWoodMat, 0, 1.72, 0.01);
+        addMesh(g, roundedBoxGeo(0.64, 0.84, 0.09, 0.012), oakWoodMat, 0, 1.72, 0.01);
+        addMesh(g, roundedBoxGeo(0.72, 0.78, 0.082, 0.014), walnutWoodMat, 0, 0.68, 0.01);
+        addMesh(g, roundedBoxGeo(0.64, 0.7, 0.09, 0.012), oakWoodMat, 0, 0.68, 0.01);
+      }
+
+      // 3 adet metal menteşe (sağ kenarda)
+      for(const hy of [0.35, 1.2, 2.05]) {
+        addMesh(g, new THREE.CylinderGeometry(0.014, 0.014, 0.09, 10), chromeMetal, 0.49, hy, 0.048);
+      }
+
+      // Kapı kolu rozeti, kilit silindiri ve ergonomik kavisli kol (her iki yüzde)
+      for(const sz of [-1, 1]) {
+        const zOff = sz * 0.048;
+        addMesh(g, roundedBoxGeo(0.055, 0.22, 0.014, 0.006), chromeMetal, -0.39, 1.08, zOff);
+        addMesh(g, new THREE.CylinderGeometry(0.014, 0.014, 0.018, 12), darkMetal, -0.39, 1.01, zOff + sz * 0.004, Math.PI / 2); // Kilit deliği
+        addMesh(g, new THREE.CylinderGeometry(0.014, 0.014, 0.055, 10), chromeMetal, -0.39, 1.13, zOff + sz * 0.025, Math.PI / 2);
+        addMesh(g, roundedBoxGeo(0.14, 0.024, 0.022, 0.009), chromeMetal, -0.33, 1.13, zOff + sz * 0.05);
+      }
+
+      parent.add(g);
+      return g;
+    }
+
+    // Gerçekçi çok bölmeli, denizlikli, kulplu ve perdeli pencere modeli
+    function buildRealisticWindow(parent, x, y, z, ry = 0, w = 2.4, h = 1.75, withCurtains = true) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      const frameM = withCurtains ? walnutWoodMat : darkMetal;
+
+      // Dış pencere kasası
+      addMesh(g, roundedBoxGeo(w + 0.16, 0.1, 0.16, 0.015), frameM, 0, h / 2 + 0.03, 0);
+      addMesh(g, roundedBoxGeo(w + 0.16, 0.1, 0.16, 0.015), frameM, 0, -h / 2 - 0.03, 0);
+      addMesh(g, roundedBoxGeo(0.1, h + 0.12, 0.16, 0.015), frameM, -w / 2 - 0.03, 0, 0);
+      addMesh(g, roundedBoxGeo(0.1, h + 0.12, 0.16, 0.015), frameM, w / 2 + 0.03, 0, 0);
+
+      // Mermer / ahşap pencere denizliği (içeri çıkıntılı)
+      addMesh(g, roundedBoxGeo(w + 0.28, 0.055, 0.28, 0.014), withCurtains ? mat(0xe2e8f0, 0.35) : darkMetal, 0, -h / 2 - 0.06, 0.06);
+
+      // Orta kayıtlar ve üst vasistas bölmesi
+      const transomY = h * 0.22;
+      addMesh(g, roundedBoxGeo(w, 0.07, 0.12, 0.01), frameM, 0, transomY, 0);
+      addMesh(g, roundedBoxGeo(0.075, h, 0.12, 0.01), frameM, 0, 0, 0);
+
+      // Yansımalı pencere camı
+      const glassM = new THREE.MeshStandardMaterial({
+        color: 0xbde0fe,
+        emissive: 0x3a6ea5,
+        emissiveIntensity: 0.28,
+        roughness: 0.08,
+        metalness: 0.15,
+        transparent: true,
+        opacity: 0.58
+      });
+      addMesh(g, new THREE.BoxGeometry(w - 0.06, h - 0.06, 0.02), glassM, 0, 0, -0.01, 0, 0, 0, false);
+
+      // Pencere açma kolları (sol ve sağ kanat)
+      for(const sx of [-0.07, 0.07]) {
+        addMesh(g, roundedBoxGeo(0.025, 0.09, 0.02, 0.005), chromeMetal, sx, -0.1, 0.07);
+        addMesh(g, roundedBoxGeo(0.022, 0.11, 0.02, 0.006), chromeMetal, sx, -0.15, 0.095);
+      }
+
+      // Perdeler ve korniş
+      if(withCurtains) {
+        addMesh(g, new THREE.CylinderGeometry(0.022, 0.022, w + 0.65, 14), chromeMetal, 0, h / 2 + 0.2, 0.14, 0, 0, Math.PI / 2);
+        for(const sx of [-1, 1]) {
+          addMesh(g, new THREE.SphereGeometry(0.04, 12, 10), chromeMetal, sx * (w / 2 + 0.34), h / 2 + 0.2, 0.14);
+          // Kıvrımlı perde pilileri
+          for(let p = 0; p < 3; p++) {
+            addMesh(g, roundedBoxGeo(0.14, h + 0.35, 0.09, 0.03), mat(p % 2 ? 0x64748b : 0x475569, 0.9), sx * (w / 2 + 0.05) + (p - 1) * 0.09, 0.02, 0.14 + (p % 2) * 0.02);
+          }
+        }
+      }
+
+      parent.add(g);
+      return g;
+    }
+
+    // Etkileşimli Kahve Makinesi + Fincanlar + Tezgah Modeli
+    function buildCoffeeStation(parent, x, y, z, ry = 0) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      // Ahşap servis konsolu
+      addMesh(g, roundedBoxGeo(0.95, 0.82, 0.54, 0.025), walnutWoodMat, 0, 0.41, 0);
+      addMesh(g, roundedBoxGeo(1.0, 0.05, 0.58, 0.015), oakWoodMat, 0, 0.84, 0);
+      // Espresso / Kahve Makinesi Gövdesi
+      addMesh(g, roundedBoxGeo(0.36, 0.42, 0.32, 0.025), darkMetal, -0.14, 1.07, -0.04);
+      addMesh(g, roundedBoxGeo(0.32, 0.14, 0.34, 0.02), chromeMetal, -0.14, 1.24, -0.03);
+      addMesh(g, roundedBoxGeo(0.28, 0.04, 0.22, 0.01), chromeMetal, -0.14, 0.88, 0.08); // Damlama tepsisi
+      // Kahve fincanı ve buhar ışığı
+      addMesh(g, new THREE.CylinderGeometry(0.04, 0.034, 0.085, 14), ceramicWhite, -0.14, 0.94, 0.09);
+      addMesh(g, new THREE.CylinderGeometry(0.015, 0.015, 0.015, 10), mat(0x22c55e, 0.3, { emissive: 0x22c55e, emissiveIntensity: 0.95 }), -0.04, 1.24, 0.145, Math.PI / 2);
+      // Yedek fincanlar ve kahve kavanozu
+      addMesh(g, new THREE.CylinderGeometry(0.042, 0.036, 0.09, 14), ceramicWhite, 0.22, 0.91, 0.06);
+      addMesh(g, new THREE.CylinderGeometry(0.042, 0.036, 0.09, 14), mat(0xe23b3b, 0.4), 0.34, 0.91, -0.04);
+      addMesh(g, new THREE.CylinderGeometry(0.075, 0.075, 0.18, 16), mat(0x78350f, 0.5), 0.24, 0.95, -0.14);
+      parent.add(g);
+      return g;
+    }
+
+    // Rahat Lüks Deri / Kumaş Dinlenme Koltuğu (Tekli veya İkili)
+    function buildLoungeSofa(parent, x, y, z, ry = 0, wide = false, leatherMat = darkLeather) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.y = ry;
+      const w = wide ? 1.85 : 0.92;
+      // Ayaklar
+      for(const sx of [-w / 2 + 0.1, w / 2 - 0.1]) {
+        for(const sz of [-0.32, 0.32]) {
+          addMesh(g, new THREE.CylinderGeometry(0.025, 0.02, 0.12, 10), chromeMetal, sx, 0.06, sz);
+        }
+      }
+      // Taban ve oturma minderleri
+      addMesh(g, roundedBoxGeo(w, 0.18, 0.84, 0.04), leatherMat, 0, 0.2, 0);
+      if(wide) {
+        addMesh(g, roundedBoxGeo(0.82, 0.14, 0.72, 0.05), leatherMat, -0.43, 0.34, 0.04);
+        addMesh(g, roundedBoxGeo(0.82, 0.14, 0.72, 0.05), leatherMat, 0.43, 0.34, 0.04);
+      } else {
+        addMesh(g, roundedBoxGeo(0.72, 0.14, 0.72, 0.05), leatherMat, 0, 0.34, 0.04);
+      }
+      // Sırtlık ve yan kolçaklar
+      addMesh(g, roundedBoxGeo(w, 0.58, 0.2, 0.06), leatherMat, 0, 0.54, -0.32, -0.1, 0, 0);
+      for(const sx of [-w / 2 + 0.09, w / 2 - 0.09]) {
+        addMesh(g, roundedBoxGeo(0.18, 0.38, 0.82, 0.055), leatherMat, sx, 0.42, 0);
+      }
+      parent.add(g);
+      return g;
+    }
+
+    // --- BAŞLANGIÇ ODASI (MANTIKLI VE GERÇEKÇİ YERLEŞİM) ---
+    const roomGroup = new THREE.Group();
+    scene.add(roomGroup);
+
+    // Zemin, duvarlar, tavan ve ahşap süpürgelikler
+    addMesh(roomGroup, new THREE.BoxGeometry(8.4, 0.2, 8.4), floorParkeMat, 0, -0.1, 0, 0, 0, 0, false);
+    addMesh(roomGroup, new THREE.BoxGeometry(8.4, 4.1, 0.18), wallPlasterMat, 0, 2.05, -4.29, 0, 0, 0, false); // Arka duvar
+    addMesh(roomGroup, new THREE.BoxGeometry(8.4, 4.1, 0.18), wallPlasterMat, 0, 2.05, 4.29, 0, 0, 0, false);  // Ön duvar
+    addMesh(roomGroup, new THREE.BoxGeometry(0.18, 4.1, 8.4), wallAccentMat, -4.29, 2.05, 0, 0, 0, 0, false); // Sol duvar
+    addMesh(roomGroup, new THREE.BoxGeometry(0.18, 4.1, 8.4), wallAccentMat, 4.29, 2.05, 0, 0, 0, 0, false);  // Sağ duvar
+    addMesh(roomGroup, new THREE.BoxGeometry(8.4, 0.16, 8.4), mat(0xebe5da, 0.95), 0, 4.18, 0, 0, 0, 0, false);
+
+    // Ahşap süpürgelikler
+    addMesh(roomGroup, new THREE.BoxGeometry(8.38, 0.16, 0.05), walnutWoodMat, 0, 0.08, -4.18, 0, 0, 0, false);
+    addMesh(roomGroup, new THREE.BoxGeometry(8.38, 0.16, 0.05), walnutWoodMat, 0, 0.08, 4.18, 0, 0, 0, false);
+    addMesh(roomGroup, new THREE.BoxGeometry(0.05, 0.16, 8.38), walnutWoodMat, -4.18, 0.08, 0, 0, 0, 0, false);
+    addMesh(roomGroup, new THREE.BoxGeometry(0.05, 0.16, 8.38), walnutWoodMat, 4.18, 0.08, 0, 0, 0, 0, false);
+
+    // Tavan armatürü ve sıcak oda ışığı
+    addMesh(roomGroup, new THREE.CylinderGeometry(0.24, 0.28, 0.08, 20), mat(0xfff5e4, 0.4, { emissive: 0xffe0ad, emissiveIntensity: 0.7 }), 0, 4.06, 0);
+    const ceilingLight = new THREE.PointLight(0xffdfb0, 46, 12, 1.8);
+    ceilingLight.position.set(0, 3.85, 0);
+    roomGroup.add(ceilingLight);
+
+    // Sol duvarda gerçekçi pencere + dışarıda şehir manzarası
+    buildRealisticWindow(roomGroup, -4.16, 2.32, -1.2, Math.PI / 2, 2.4, 1.78, true);
+
+    // Pencere dışındaki şehir silüeti
+    for(let i = 0; i < 9; i++) {
+      const bh = 4 + (i * 17 % 7) * 1.4;
+      addMesh(roomGroup, new THREE.BoxGeometry(3.2, bh, 3.2), mat(0x5d7285, 0.85), -14 - (i % 3) * 4, bh / 2 - 2, -10 + i * 2.8, 0, 0, 0, false);
+    }
+
+    // Odanın ortasında desenli kilim (ferah yürüme alanı)
+    const rugMat = new THREE.MeshStandardMaterial({ map: makeRugTexture(), roughness: 0.92 });
+    addMesh(roomGroup, roundedBoxGeo(3.2, 0.02, 2.3, 0.008), rugMat, 0.15, 0.01, 0.55, 0, 0, 0, false);
+
+    // 1) ARKA SOL KÖŞE: ÇALIŞMA MASASI + CRT BİLGİSAYAR + ERGONOMİK KOLTUK
+    const deskGroup = new THREE.Group();
+    deskGroup.position.set(-2.35, 0, -3.25);
+    roomGroup.add(deskGroup);
+    addMesh(deskGroup, roundedBoxGeo(2.2, 0.08, 1.0, 0.025), oakWoodMat, 0, 0.82, 0);
+    for(const [lx, lz] of [[-0.98, -0.4], [0.98, -0.4], [-0.98, 0.4], [0.98, 0.4]]) {
+      addMesh(deskGroup, new THREE.CylinderGeometry(0.035, 0.03, 0.8, 12), walnutWoodMat, lx, 0.4, lz);
+    }
+    // Keson çekmeceler ve kulplar
+    addMesh(deskGroup, roundedBoxGeo(0.46, 0.56, 0.82, 0.02), walnutWoodMat, -0.76, 0.5, 0);
+    for(const dy of [0.36, 0.54, 0.68]) {
+      addMesh(deskGroup, roundedBoxGeo(0.42, 0.13, 0.03, 0.008), oakWoodMat, -0.76, dy, 0.415);
+      addMesh(deskGroup, new THREE.CylinderGeometry(0.008, 0.008, 0.14, 8), chromeMetal, -0.76, dy, 0.44, 0, 0, Math.PI / 2);
+    }
+    // Masa üstü aksesuarlar (not defteri, kalemlik, kupa)
+    addMesh(deskGroup, roundedBoxGeo(0.24, 0.018, 0.32, 0.005), mat(0xf8fafc, 0.8), -0.78, 0.87, 0.16, 0, 0.22, 0);
+    addMesh(deskGroup, new THREE.CylinderGeometry(0.045, 0.04, 0.11, 14), ceramicWhite, 0.85, 0.915, 0.18);
+    addMesh(deskGroup, new THREE.CylinderGeometry(0.04, 0.035, 0.11, 12), darkMetal, -0.88, 0.915, -0.25);
+
+    const crtSetup = buildCRTComputer(deskGroup, -0.1, 0.86, -0.1, 0);
+    const deskChair = buildErgonomicChair(roomGroup, -2.35, 0, -2.05, 0, darkLeather);
+
+    // 2) ARKA SAĞ KÖŞE: YATAK + KOMODİN + ABAJUR
+    const bedGroup = new THREE.Group();
+    bedGroup.position.set(2.55, 0, -2.65);
+    roomGroup.add(bedGroup);
+    // Karyola kasası ve çıtalı başlık
+    addMesh(bedGroup, roundedBoxGeo(1.68, 0.26, 2.45, 0.03), walnutWoodMat, 0, 0.24, 0);
+    addMesh(bedGroup, roundedBoxGeo(1.74, 1.05, 0.1, 0.03), walnutWoodMat, 0, 0.58, -1.22);
+    for(const sx of [-0.78, 0.78]) addMesh(bedGroup, new THREE.CylinderGeometry(0.04, 0.04, 0.14, 10), walnutWoodMat, sx, 0.07, 1.12);
+    // Yatak şiltesi, yumuşak yorgan ve yastıklar
+    addMesh(bedGroup, roundedBoxGeo(1.58, 0.22, 2.34, 0.06), mat(0xe2e8f0, 0.85), 0, 0.45, 0.02);
+    addMesh(bedGroup, roundedBoxGeo(1.62, 0.12, 1.52, 0.055), mat(0x3b5978, 0.88), 0, 0.56, 0.44);
+    addMesh(bedGroup, roundedBoxGeo(0.68, 0.14, 0.42, 0.06), mat(0xf8fafc, 0.85), -0.38, 0.6, -0.82, 0.14, 0.08, 0);
+    addMesh(bedGroup, roundedBoxGeo(0.68, 0.14, 0.42, 0.06), mat(0xf8fafc, 0.85), 0.38, 0.6, -0.82, 0.14, -0.08, 0);
+
+    // Komodin ve tornalanmış abajur
+    addMesh(roomGroup, roundedBoxGeo(0.62, 0.64, 0.56, 0.025), oakWoodMat, 3.75, 0.32, -3.55);
+    addMesh(roomGroup, roundedBoxGeo(0.54, 0.18, 0.03, 0.008), walnutWoodMat, 3.75, 0.46, -3.26);
+    buildTableLamp(roomGroup, 3.75, 0.64, -3.55, true);
+
+    // 3) SAĞ DUVAR ORTASI: DETAYLI KİTAPLIK
+    const shelfGroup = new THREE.Group();
+    shelfGroup.position.set(3.85, 0, 0.35);
+    shelfGroup.rotation.y = -Math.PI / 2;
+    roomGroup.add(shelfGroup);
+    addMesh(shelfGroup, roundedBoxGeo(1.3, 2.25, 0.38, 0.02), walnutWoodMat, 0, 1.125, 0);
+    for(const sy of [0.35, 0.9, 1.45, 2.0]) {
+      addMesh(shelfGroup, roundedBoxGeo(1.22, 0.04, 0.36, 0.008), oakWoodMat, 0, sy, 0.02);
+    }
+    const bookColors = ['#8c3b3b', '#2c5282', '#2f6f4e', '#9c6b30', '#553c7b', '#334155'];
+    const bookTitles = ['C++ 2000', '3D MATH', 'GAME DEV', 'OPENGL', 'PIXEL ART', 'AI CODE'];
+    for(let row = 0; row < 3; row++) {
+      const baseY = 0.37 + row * 0.55;
+      for(let b = 0; b < 7; b++) {
+        const bh = 0.32 + (b % 3) * 0.04;
+        const bMat = new THREE.MeshStandardMaterial({ map: makeBookSpineTexture(bookColors[(b + row) % bookColors.length], bookTitles[(b + row) % bookTitles.length]), roughness: 0.7 });
+        addMesh(shelfGroup, roundedBoxGeo(0.075, bh, 0.25, 0.008), bMat, -0.46 + b * 0.145, baseY + bh / 2, 0.03, 0, 0, b === 6 && row === 1 ? -0.18 : 0);
+      }
+    }
+
+    // 4) ÖN SAĞ / KAPI YANI: RETRO RADYO SEHPASI + SAKSI BİTKİSİ + ÇIKIŞ KAPISI
+    // Radyo konsolu sağ ön duvara yaslı (oda ortasını tıkamıyor!)
+    const mediaStand = new THREE.Group();
+    mediaStand.position.set(3.65, 0, 2.85);
+    mediaStand.rotation.y = -Math.PI / 2;
+    roomGroup.add(mediaStand);
+    addMesh(mediaStand, roundedBoxGeo(1.05, 0.68, 0.48, 0.025), oakWoodMat, 0, 0.34, 0);
+    // Retro radyo modeli
+    const radioG = new THREE.Group();
+    radioG.position.set(0, 0.68, 0);
+    addMesh(radioG, roundedBoxGeo(0.46, 0.24, 0.2, 0.02), walnutWoodMat, 0, 0.12, 0);
+    addMesh(radioG, roundedBoxGeo(0.18, 0.16, 0.02, 0.006), darkMetal, -0.1, 0.12, 0.095); // Hoparlör
+    addMesh(radioG, roundedBoxGeo(0.16, 0.08, 0.02, 0.005), mat(0xfef08a, 0.4, { emissive: 0xca8a04, emissiveIntensity: 0.35 }), 0.1, 0.15, 0.095); // Frekans kadranı
+    addMesh(radioG, new THREE.CylinderGeometry(0.018, 0.018, 0.025, 12), chromeMetal, 0.06, 0.07, 0.1, Math.PI / 2);
+    addMesh(radioG, new THREE.CylinderGeometry(0.018, 0.018, 0.025, 12), chromeMetal, 0.14, 0.07, 0.1, Math.PI / 2);
+    addMesh(radioG, new THREE.CylinderGeometry(0.004, 0.006, 0.42, 8), chromeMetal, -0.16, 0.36, -0.05, 0, 0, -0.25); // Anten
+    mediaStand.add(radioG);
+
+    // Sol ön köşede organik saksı bitkisi
+    buildOrganicPlant(roomGroup, -3.55, 0, 3.45, 1.15);
+
+    // Duvar posterleri (canvas sanat dokulu)
+    const poster1 = new THREE.MeshStandardMaterial({ map: makePosterTexture('CYBER QUEST', '#0f766e'), roughness: 0.6 });
+    const poster2 = new THREE.MeshStandardMaterial({ map: makePosterTexture('STAR RACER', '#7c2d12'), roughness: 0.6 });
+    addMesh(roomGroup, roundedBoxGeo(0.95, 1.25, 0.03, 0.01), poster1, -0.35, 2.35, -4.18, 0, 0, 0, false);
+    addMesh(roomGroup, roundedBoxGeo(0.85, 1.1, 0.03, 0.01), poster2, -4.18, 2.35, 1.75, 0, Math.PI / 2, 0, false);
+
+    // Arka duvarda gerçekçi ofis çıkış kapısı
+    buildRealisticDoor(roomGroup, 0.95, 0, -4.15, 0, 'wood');
+
+    // Sol duvara yakın dinlenme koltuğu ve kahve köşesi (Başlangıç odasında da!)
+    buildLoungeSofa(roomGroup, -3.55, 0, 1.45, Math.PI / 2, false, fabricSlate);
+    buildCoffeeStation(roomGroup, -1.85, 0, 3.85, Math.PI);
+
+    // --- 1. OFİS: INDIE OYUN STÜDYOSU (Sıcak Ahşap & Tuğla Teması) ---
+    const officeGroup = new THREE.Group();
+    scene.add(officeGroup);
+    officeGroup.visible = !!state.officeOwned;
+
+    const officeFloorMat = new THREE.MeshStandardMaterial({ map: makeWoodTexture('#6b4f3a', '#3d2b1d', 6, 6), roughness: 0.72 });
+    const officeWallMat = new THREE.MeshStandardMaterial({ map: makePlasterTexture('#dfd6c7', 4, 2), roughness: 0.9 });
+
+    addMesh(officeGroup, new THREE.BoxGeometry(10, 0.22, 9), officeFloorMat, 14, -0.11, 0, 0, 0, 0, false);
+    addMesh(officeGroup, new THREE.BoxGeometry(10, 4.1, 0.18), officeWallMat, 14, 2.05, -4.5, 0, 0, 0, false);
+    addMesh(officeGroup, new THREE.BoxGeometry(10, 4.1, 0.18), officeWallMat, 14, 2.05, 4.5, 0, 0, 0, false);
+    addMesh(officeGroup, new THREE.BoxGeometry(0.18, 4.1, 9), officeWallMat, 9, 2.05, 0, 0, 0, 0, false);
+    addMesh(officeGroup, new THREE.BoxGeometry(0.18, 4.1, 9), officeWallMat, 19, 2.05, 0, 0, 0, 0, false);
+    addMesh(officeGroup, new THREE.BoxGeometry(10, 0.16, 9), officeWallMat, 14, 4.18, 0, 0, 0, 0, false);
+
+    // Gerçekçi pencereler ve kapılar
+    buildRealisticWindow(officeGroup, 12.2, 2.35, -4.38, 0, 2.6, 1.8, true);
+    buildRealisticWindow(officeGroup, 15.8, 2.35, -4.38, 0, 2.6, 1.8, true);
+    buildRealisticDoor(officeGroup, 14, 0, 4.38, Math.PI, 'wood'); // Çıkış kapısı
+    buildRealisticDoor(officeGroup, 18.88, 0, 3.2, -Math.PI / 2, 'glass'); // 2. ofis geçiş kapısı
+
+    // Patron çalışma masası, koltuk, dinlenme koltuğu ve kahve makinesi (1. Ofis)
+    buildModernWorkstation(officeGroup, 10.4, 0, 3.3, Math.PI);
+    buildErgonomicChair(officeGroup, 10.4, 0, 2.45, Math.PI, darkLeather);
+    buildLoungeSofa(officeGroup, 16.6, 0, 3.65, Math.PI, true, fabricSlate);
+    buildCoffeeStation(officeGroup, 9.65, 0, 0.2, Math.PI / 2);
+
+    buildOrganicPlant(officeGroup, 9.7, 0, -3.8, 1.2);
+    buildOrganicPlant(officeGroup, 18.3, 0, -3.8, 1.2);
+
+    const officeLight = new THREE.PointLight(0xfff0d6, 52, 16, 1.8);
+    officeLight.position.set(14, 3.8, 0);
+    officeGroup.add(officeLight);
+
+    const workerStations = [
+      { x: 11.8, z: -1.6 }, { x: 16.2, z: -1.6 },
+      { x: 11.8, z: 0.8 },  { x: 16.2, z: 0.8 },
+      { x: 27.8, z: -1.6 }, { x: 32.2, z: -1.6 },
+      { x: 27.8, z: 0.8 },  { x: 32.2, z: 0.8 }
+    ];
+
+    for(const st of workerStations.slice(0, 4)) {
+      buildModernWorkstation(officeGroup, st.x, 0, st.z, 0);
+    }
+
+    // --- 2. OFİS: MODERN TEKNOLOJİ STÜDYOSU (Soğuk Mavi-Gri & Cam Teması) ---
+    const office2Group = new THREE.Group();
+    scene.add(office2Group);
+    office2Group.visible = !!state.office2Owned;
+
+    const techWallMat = new THREE.MeshStandardMaterial({ map: makePlasterTexture('#cfd8e3', 4, 2), roughness: 0.85 });
+    addMesh(office2Group, new THREE.BoxGeometry(10, 0.22, 9), mat(0x2b3a4a, 0.65), 30, -0.11, 0, 0, 0, 0, false);
+    addMesh(office2Group, new THREE.BoxGeometry(10, 4.1, 0.18), techWallMat, 30, 2.05, -4.5, 0, 0, 0, false);
+    addMesh(office2Group, new THREE.BoxGeometry(10, 4.1, 0.18), techWallMat, 30, 2.05, 4.5, 0, 0, 0, false);
+    addMesh(office2Group, new THREE.BoxGeometry(0.18, 4.1, 9), techWallMat, 25, 2.05, 0, 0, 0, 0, false);
+    addMesh(office2Group, new THREE.BoxGeometry(0.18, 4.1, 9), techWallMat, 35, 2.05, 0, 0, 0, 0, false);
+    addMesh(office2Group, new THREE.BoxGeometry(10, 0.16, 9), techWallMat, 30, 4.18, 0, 0, 0, 0, false);
+
+    buildRealisticWindow(office2Group, 28.0, 2.35, -4.38, 0, 2.8, 1.85, false);
+    buildRealisticWindow(office2Group, 32.0, 2.35, -4.38, 0, 2.8, 1.85, false);
+    buildRealisticDoor(office2Group, 30, 0, 4.38, Math.PI, 'glass'); // 1. ofise dönüş kapısı
+    buildRealisticDoor(office2Group, 34.88, 0, 0, -Math.PI / 2, 'glass'); // 3. ofise geçiş kapısı
+
+    // Patron çalışma masası, koltuk, dinlenme koltuğu ve kahve makinesi (2. Ofis)
+    buildModernWorkstation(office2Group, 26.5, 0, 3.3, Math.PI);
+    buildErgonomicChair(office2Group, 26.5, 0, 2.45, Math.PI, darkLeather);
+    buildLoungeSofa(office2Group, 32.8, 0, 3.65, Math.PI, true, darkLeather);
+    buildCoffeeStation(office2Group, 25.65, 0, 0.2, Math.PI / 2);
+    buildOrganicPlant(office2Group, 25.7, 0, -3.8, 1.2);
+
+    for(const st of workerStations.slice(4, 8)) {
+      buildModernWorkstation(office2Group, st.x, 0, st.z, 0);
+    }
+
+    const office2Light = new THREE.PointLight(0xd8efff, 52, 16, 1.8);
+    office2Light.position.set(30, 3.8, 0);
+    office2Group.add(office2Light);
+
+    // --- 3. OFİS: İKİ KATLI KURUMSAL PLAZA ---
+    const off3 = new THREE.Group();
+    scene.add(off3);
+    off3.visible = !!state.office3Owned;
+
+    const fl3 = mat(0xd1d5db, 0.55);
+    const wl3 = mat(0xf1f5f9, 0.9);
+    const dk3 = mat(0x27303f, 0.65);
+    const gls = mat(0x93c5fd, 0.08, { transparent: true, opacity: 0.25, metalness: 0.15, depthWrite: false });
+    const lamp3 = mat(0xffffff, 0.4, { emissive: 0xfff3d6, emissiveIntensity: 1.3 });
+    const sofaM = mat(0x475569, 0.85);
+
+    const B = (x, y, z, w, h, d, m, rz = 0) => addMesh(off3, roundedBoxGeo(w, h, d, Math.min(0.025, w * 0.1, h * 0.1, d * 0.1)), m, x, y, z, 0, 0, rz);
+
+    B(50, -0.12, 0, 20, 0.24, 12, fl3);
+    B(50, 4.1, -1.4, 20, 0.2, 9.2, fl3);
+    B(50, 4.1, 5.6, 20, 0.2, 0.8, fl3);
+    B(42, 4.1, 4.2, 4, 0.2, 2, fl3);
+    B(56, 4.1, 4.2, 8, 0.2, 2, fl3);
+    B(50, 8.475, 0, 20, 0.15, 12, wl3);
+    B(40, 4.2, 0, 0.2, 8.4, 12, wl3);
+
+    for(const z of [-6, 6]) {
+      B(50, 2.1, z, 20, 4.1, 0.05, gls);
+      B(50, 6.3, z, 20, 4.1, 0.05, gls);
+      B(50, 4.2, z, 20, 0.16, 0.2, dk3);
+      B(50, 8.4, z, 20, 0.16, 0.2, dk3);
+      for(let x = 40; x <= 60; x += 4) B(x, 4.2, z, 0.18, 8.4, 0.2, dk3);
+    }
+    B(60, 4.2, 0, 0.05, 8.4, 12, gls);
+    for(let z = -6; z <= 6; z += 4) B(60, 4.2, z, 0.2, 8.4, 0.18, dk3);
+
+    for(const y of [3.95, 8.35]) {
+      for(const x of [44, 50, 56]) {
+        for(const z of [-3, 2]) B(x, y, z, 3, 0.06, 0.4, lamp3);
+      }
+    }
+    for(const [x, y, z] of [[46, 3.5, -2], [55, 3.5, 2], [46, 7.7, -2], [55, 7.7, 2]]) {
+      const l = new THREE.PointLight(0xfff1dc, 68, 18, 2);
+      l.position.set(x, y, z);
+      off3.add(l);
+    }
+
+    // Dış çevre binaları
+    B(50, -0.3, 0, 90, 0.1, 90, mat(0x5c6b63, 1));
+    for(let i = 0; i < 14; i++) {
+      const h = 5 + (i * 37 % 9) * 1.6;
+      const z = (i % 2 ? 1 : -1) * (14 + (i % 3) * 3);
+      B(34 + i * 3.1, h / 2, z, 2.6, h, 2.6, mat(0x64748b, 0.8));
+    }
+
+    function sign(t, x, y, z, w, h, ry = 0) {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 128;
+      const g = c.getContext('2d');
+      g.fillStyle = '#d23a3a';
+      g.fillRect(0, 0, 512, 128);
+      g.fillStyle = '#fff';
+      g.font = 'bold 58px sans-serif';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(t, 256, 68);
+      const o = addMesh(off3, roundedBoxGeo(w, h, 0.05, 0.01), mat(0xffffff, 0.5, { map: new THREE.CanvasTexture(c) }), x, y, z, 0, ry, 0);
+      return o;
+    }
+
+    B(40.18, 1.3, 0, 0.06, 2.6, 1.1, mat(0x475569));
+    buildRealisticDoor(off3, 40.15, 0, 0, Math.PI / 2, 'glass');
+    buildRealisticDoor(off3, 59.85, 0, 0, -Math.PI / 2, 'glass'); // 4. ofise (Gökdelen) geçiş kapısı
+    sign('RED GAMES', 40.15, 2.9, -3.3, 2.4, 0.6, Math.PI / 2);
+    sign('YÖNETİCİ • RED GAMES', 56, 6.9, -0.45, 2.8, 0.6);
+
+    const COL = [];
+    const col = (x, z, w, d, lv, rm) => COL.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, lv, rm });
+
+    const g0 = [[45, -4.2], [48.5, -4.2], [52, -4.2], [45, -0.2], [48.5, -0.2], [52, -0.2], [55.5, -0.2]];
+    const g1 = [[42, -4.2], [45.5, -4.2], [49, -4.2], [42, -0.2], [45.5, -0.2], [49, -0.2], [56.5, 1.8]];
+    g0.forEach(([x, z]) => {
+      workerStations.push({ x, z, y: 0 });
+      buildModernWorkstation(off3, x, 0, z, 0);
+      col(x, z, 1.75, 0.9, 0, 3);
+    });
+    g1.forEach(([x, z]) => {
+      workerStations.push({ x, z, y: 4.2 });
+      buildModernWorkstation(off3, x, 4.2, z, 0);
+      col(x, z, 1.75, 0.9, 1, 3);
+    });
+
+    // Resepsiyon, dinlenme koltukları, toplantı alanı ve kahve makinesi (3. Ofis)
+    B(42, 0.5, -3, 0.8, 1, 3, oakWoodMat); col(42, -3, 0.9, 3.1, 0, 3);
+    buildLoungeSofa(off3, 41.8, 0, 3.6, Math.PI / 2, true, sofaM); col(41.8, 3.6, 1, 2.4, 0, 3);
+    B(54, 2, -4, 0.05, 4, 4, gls); B(57.6, 2, -2, 4.8, 4, 0.05, gls); col(54, -4, 0.15, 4, 0, 3); col(57.6, -2, 4.8, 0.15, 0, 3);
+    B(57, 0.75, -4, 3.2, 0.08, 1.4, oakWoodMat); B(57, 0.37, -4, 0.2, 0.75, 0.2, dk3); col(57, -4, 3.3, 1.5, 0, 3);
+    buildLoungeSofa(off3, 58, 0, 5.1, Math.PI, true, darkLeather); col(58, 5.2, 2.5, 1, 0, 3);
+    buildCoffeeStation(off3, 59.3, 0, 2.4, -Math.PI / 2); col(59.3, 2.4, 0.65, 1.0, 0, 3);
+    buildCoffeeStation(off3, 52.8, 4.2, -5.4, 0); col(52.8, -5.4, 1.0, 0.65, 1, 3); // Yönetici odası kahve köşesi
+    buildLoungeSofa(off3, 58.6, 4.2, -2.6, -Math.PI / 2, true, darkLeather); col(58.6, -2.6, 0.9, 1.9, 1, 3);
+
+    for(const [px, pz, py, plv] of [[41, 5.4, 0, 0], [59.2, -0.8, 0, 0], [43, -5.3, 0, 0], [41, 5.4, 4.2, 1], [59.2, 5.4, 4.2, 1], [41, -5.3, 4.2, 1]]) {
+      buildOrganicPlant(off3, px, py, pz, 1.1);
+      col(px, pz, 0.5, 0.5, plv, 3);
+    }
+
+    // Merdiven
+    for(let k = 0; k < 14; k++) {
+      const h = (k + 1) * 0.3;
+      B(44 + (k + 0.5) * 8 / 14, h / 2, 4.2, 8 / 14, h, 2, k % 2 ? fl3 : wl3);
+    }
+    for(const z of [3.2, 5.2]) {
+      B(48, 3.05, z, 8.4, 0.9, 0.03, gls, 0.4833);
+      B(48, 3.55, z, 9.1, 0.06, 0.06, dk3, 0.4833);
+    }
+    col(48, 3.2, 8, 0.2, 2, 3); col(48, 5.2, 8, 0.2, 2, 3); col(43.9, 4.2, 0.2, 2.2, 1, 3); col(52.1, 4.2, 0.2, 2.2, 0, 3);
+
+    // Yönetici odası (üst kat)
+    B(56, 4.205, -3.25, 7.8, 0.01, 5.4, mat(0x334155, 1));
+    B(52, 5.8, -3.25, 0.05, 3.2, 5.5, gls);
+    B(53.5, 5.8, -0.5, 3, 3.2, 0.05, gls);
+    B(58.3, 5.8, -0.5, 3.4, 3.2, 0.05, gls);
+    col(52, -3.25, 0.2, 5.5, 1, 3); col(53.5, -0.5, 3, 0.2, 1, 3); col(58.3, -0.5, 3.4, 0.2, 1, 3);
+    buildModernWorkstation(off3, 56.5, 4.2, -4.6, 0);
+    col(56.5, -4.6, 2.2, 1.0, 1, 3);
+    buildErgonomicChair(off3, 56.5, 4.2, -3.5, 0, darkLeather);
+    col(56.5, -3.5, 0.6, 0.6, 1, 3);
+    buildOrganicPlant(off3, 53.3, 4.2, -1.2, 1.15);
+
+    // --- 4. OFİS: LÜKS GÖKDELEN PENTHOUSE STÜDYOSU (Altın, Mermer & Panoramik Manzara) ---
+    const off4 = new THREE.Group();
+    scene.add(off4);
+    off4.visible = !!state.office4Owned;
+
+    const marbleFloor = mat(0x1e242b, 0.22, { metalness: 0.25 });
+    const goldTrim = mat(0xd4af37, 0.3, { metalness: 0.85 });
+    const darkMarbleWall = mat(0x141920, 0.45);
+    const skyGlass = mat(0xbae6fd, 0.06, { transparent: true, opacity: 0.24, metalness: 0.2, depthWrite: false });
+
+    addMesh(off4, new THREE.BoxGeometry(16, 0.24, 12), marbleFloor, 74, -0.12, 0, 0, 0, 0, false);
+    addMesh(off4, new THREE.BoxGeometry(16, 0.16, 12), darkMarbleWall, 74, 4.5, 0, 0, 0, 0, false);
+    addMesh(off4, new THREE.BoxGeometry(0.2, 4.5, 12), darkMarbleWall, 66, 2.25, 0, 0, 0, 0, false);
+    // Panoramik gökdelen cam cepheleri (3 taraf)
+    for(const z of [-6, 6]) {
+      addMesh(off4, new THREE.BoxGeometry(16, 4.4, 0.06), skyGlass, 74, 2.25, z, 0, 0, 0, false);
+      addMesh(off4, new THREE.BoxGeometry(16, 0.14, 0.2), goldTrim, 74, 4.42, z);
+      for(let gx = 66; gx <= 82; gx += 4) addMesh(off4, new THREE.BoxGeometry(0.16, 4.5, 0.18), goldTrim, gx, 2.25, z);
+    }
+    addMesh(off4, new THREE.BoxGeometry(0.06, 4.4, 12), skyGlass, 82, 2.25, 0, 0, 0, 0, false);
+    for(let gz = -6; gz <= 6; gz += 4) addMesh(off4, new THREE.BoxGeometry(0.18, 4.5, 0.16), goldTrim, 82, 2.25, gz);
+
+    // 3. ofise dönüş kapısı
+    buildRealisticDoor(off4, 66.15, 0, 0, Math.PI / 2, 'glass');
+
+    // Altın çerçeveli tavan aydınlatmaları
+    for(const lx of [70, 74, 78]) {
+      for(const lz of [-3, 3]) {
+        addMesh(off4, roundedBoxGeo(2.6, 0.06, 0.5, 0.01), mat(0xfffbeb, 0.3, { emissive: 0xfde68a, emissiveIntensity: 1.2 }), lx, 4.38, lz);
+      }
+    }
+    const skyLight4 = new THREE.PointLight(0xffedd5, 75, 22, 1.6);
+    skyLight4.position.set(74, 4.0, 0);
+    off4.add(skyLight4);
+
+    // Gökdelen 12 adet yüksek kapasiteli çalışma istasyonu (23-34. çalışanlar)
+    const g4 = [
+      [69, -4.0], [72.5, -4.0], [76, -4.0],
+      [69, -1.4], [72.5, -1.4], [76, -1.4],
+      [69, 1.4],  [72.5, 1.4],  [76, 1.4],
+      [69, 4.0],  [72.5, 4.0],  [76, 4.0]
+    ];
+    g4.forEach(([x, z]) => {
+      workerStations.push({ x, z, y: 0 });
+      buildModernWorkstation(off4, x, 0, z, 0);
+      col(x, z, 1.75, 0.9, 2, 4);
+    });
+
+    // Patron VIP Köşesi (4. Ofis - Panoramik manzaraya karşı)
+    buildModernWorkstation(off4, 80.2, 0, -2.2, -Math.PI / 2);
+    col(80.2, -2.2, 1.1, 2.0, 2, 4);
+    buildErgonomicChair(off4, 79.3, 0, -2.2, -Math.PI / 2, darkLeather);
+    col(79.3, -2.2, 0.6, 0.6, 2, 4);
+    // VIP Deri Koltuk Takımı & Kahve Barı
+    buildLoungeSofa(off4, 80.2, 0, 2.8, -Math.PI / 2, true, mat(0x451a03, 0.45));
+    col(80.2, 2.8, 0.95, 2.0, 2, 4);
+    buildLoungeSofa(off4, 78.4, 0, 4.6, Math.PI, false, mat(0x451a03, 0.45));
+    col(78.4, 4.6, 1.0, 0.95, 2, 4);
+    buildCoffeeStation(off4, 80.5, 0, 0.3, -Math.PI / 2);
+    col(80.5, 0.3, 0.65, 1.05, 2, 4);
+    buildOrganicPlant(off4, 81.2, 0, -5.2, 1.3);
+    buildOrganicPlant(off4, 81.2, 0, 5.2, 1.3);
+
+    // --- ORGANİK ÇALIŞAN MODELLERİ (ERGONOMİK KOLTUKTA OTURAN) ---
+    const workerModels = [];
+    function makeWorker(i) {
+      const st = workerStations[i];
+      const g = new THREE.Group();
+      const sk = mat([0xd49b72, 0xe2b794, 0xa87656, 0xebc6a6][i % 4], 0.65);
+      const sh = mat([0x3b5978, 0x4d6b53, 0x8c4a3e, 0x5c537a, 0x2f6f6a, 0x734966][i % 6], 0.8);
+      const pn = mat(0x28303d, 0.85);
+      const hr = mat([0x291d17, 0x4a3222, 0x1a1715, 0x6e4e32][(i + 1) % 4], 0.75);
+
+      // Ergonomik ofis koltuğu
+      buildErgonomicChair(g, 0, 0, 0.1, 0, darkLeather);
+
+      // Gövde (yumuşak omuzlu), boyun ve kafa
+      const torso = addMesh(g, roundedBoxGeo(0.38, 0.54, 0.22, 0.07), sh, 0, 0.84, 0.05);
+      addMesh(g, new THREE.CylinderGeometry(0.055, 0.065, 0.1, 10), sk, 0, 1.15, 0.04);
+      const head = addMesh(g, new THREE.SphereGeometry(0.145, 16, 14), sk, 0, 1.31, 0.02);
+      const hair = addMesh(g, new THREE.SphereGeometry(0.155, 14, 10), hr, 0, 1.36, 0.03);
+      hair.scale.set(1.02, 0.65, 1.05);
+
+      // Kulaklık detayı (bazı çalışanlarda)
+      if(i % 2 === 0) {
+        addMesh(g, new THREE.TorusGeometry(0.155, 0.015, 8, 18, Math.PI), darkMetal, 0, 1.32, 0.02);
+        addMesh(g, new THREE.CylinderGeometry(0.038, 0.038, 0.025, 12), mat(0xe23b3b, 0.4), -0.15, 1.31, 0.02, 0, 0, Math.PI / 2);
+        addMesh(g, new THREE.CylinderGeometry(0.038, 0.038, 0.025, 12), mat(0xe23b3b, 0.4), 0.15, 1.31, 0.02, 0, 0, Math.PI / 2);
+      }
+
+      // Bacaklar
+      for(const sx of [-1, 1]) {
+        addMesh(g, roundedBoxGeo(0.14, 0.12, 0.44, 0.04), pn, sx * 0.1, 0.53, -0.16);
+        addMesh(g, roundedBoxGeo(0.12, 0.44, 0.13, 0.04), pn, sx * 0.1, 0.28, -0.36);
+      }
+
+      // Eklemli kollar (klavyeye uzanır)
+      const arms = [-1, 1].map(sx => {
+        const a = new THREE.Group();
+        a.position.set(sx * 0.23, 1.03, 0.04);
+        const upper = new THREE.CylinderGeometry(0.046, 0.042, 0.34, 10);
+        upper.translate(0, -0.17, 0);
+        a.add(new THREE.Mesh(upper, sh));
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.042, 10, 8), sk);
+        hand.position.set(0, -0.35, 0);
+        a.add(hand);
+        a.rotation.x = 1.08;
+        g.add(a);
+        return a;
+      });
+
+      g.position.set(st.x, st.y || 0, st.z + 0.72);
+      g.userData = { arms, head, torso, ph: i * 1.7 };
+      (i < 4 ? officeGroup : i < 8 ? office2Group : i < 22 ? off3 : off4).add(g);
+      workerModels[i] = g;
+      g.visible = false;
+    }
+    for(let i = 0; i < 34; i++) makeWorker(i);
+
+    // --- ÇARPIŞMA KUTULARI (YENİ YERLEŞİMLE BİREBİR UYUMLU) ---
+    // Başlangıç odası (rm = 0)
+    col(-2.35, -3.25, 2.25, 1.05, 2, 0); // Çalışma masası
+    col(-2.35, -2.05, 0.55, 0.55, 2, 0); // Çalışma sandalyesi
+    col(2.55, -2.65, 1.72, 2.48, 2, 0);  // Yatak
+    col(3.75, -3.55, 0.65, 0.6, 2, 0);   // Komodin
+    col(3.85, 0.35, 0.42, 1.32, 2, 0);   // Kitaplık
+    col(3.65, 2.85, 0.52, 1.08, 2, 0);   // Radyo konsolu
+    col(-3.55, 3.45, 0.5, 0.5, 2, 0);    // Saksı bitkisi
+    col(-3.55, 1.45, 0.9, 0.95, 2, 0);   // Koltuk
+    col(-1.85, 3.85, 1.0, 0.6, 2, 0);    // Kahve makinesi
+
+    // 1. ve 2. ofis masaları, patron köşeleri, koltuklar ve kahve makineleri
+    workerStations.slice(0, 8).forEach((st, i) => col(st.x, st.z, 1.8, 0.9, 2, i < 4 ? 1 : 2));
+    col(10.4, 3.3, 1.8, 0.9, 2, 1); col(10.4, 2.45, 0.6, 0.6, 2, 1); col(16.6, 3.65, 1.9, 0.9, 2, 1); col(9.65, 0.2, 0.65, 1.0, 2, 1);
+    col(26.5, 3.3, 1.8, 0.9, 2, 2); col(26.5, 2.45, 0.6, 0.6, 2, 2); col(32.8, 3.65, 1.9, 0.9, 2, 2); col(25.65, 0.2, 0.65, 1.0, 2, 2);
+
+    // --- ETKİLEŞİM HEDEFLERİ (YENİ YERLEŞİMLE UYUMLU) ---
+    const targets = [
+      // Başlangıç Odası (rm: 0)
+      { id: 'pc', rm: 0, label: 'Bilgisayar', pos: new THREE.Vector3(-2.35, 1.25, -3.15) },
+      { id: 'chair', rm: 0, label: 'Çalışma sandalyesi / AFK modu', pos: new THREE.Vector3(-2.35, 0.85, -2.05) },
+      { id: 'bed', rm: 0, label: 'Yatak', pos: new THREE.Vector3(2.55, 0.7, -2.2) },
+      { id: 'books', rm: 0, label: 'Kitaplık', pos: new THREE.Vector3(3.6, 1.25, 0.35) },
+      { id: 'radio', rm: 0, label: 'Retro radyo', pos: new THREE.Vector3(3.65, 0.9, 2.85) },
+      { id: 'coffee', rm: 0, label: 'Kahve makinesi', pos: new THREE.Vector3(-1.85, 1.1, 3.65) },
+      { id: 'lounge', rm: 0, label: 'Dinlenme koltuğu', pos: new THREE.Vector3(-3.35, 0.7, 1.45) },
+      { id: 'door0', rm: 0, label: 'Ofis kapısı', pos: new THREE.Vector3(0.95, 1.3, -3.95) },
+
+      // 1. Ofis (rm: 1)
+      { id: 'door1_exit', rm: 1, label: 'Başlangıç odasına dön', pos: new THREE.Vector3(14, 1.3, 4.1) },
+      { id: 'door1_next', rm: 1, label: '2. Ofise geçiş kapısı', pos: new THREE.Vector3(18.6, 1.3, 3.2) },
+      { id: 'hr', rm: 1, label: 'Çalışan ve ofis yönetimi', pos: new THREE.Vector3(10.4, 1.2, 3.3) },
+      { id: 'bosschair1', rm: 1, label: 'Patron koltuğu / AFK modu', pos: new THREE.Vector3(10.4, 0.9, 2.45) },
+      { id: 'coffee', rm: 1, label: 'Kahve makinesi', pos: new THREE.Vector3(9.85, 1.1, 0.2) },
+      { id: 'lounge', rm: 1, label: 'Dinlenme koltuğu', pos: new THREE.Vector3(16.6, 0.7, 3.45) },
+
+      // 2. Ofis (rm: 2)
+      { id: 'door2_exit', rm: 2, label: '1. Ofise dön', pos: new THREE.Vector3(30, 1.3, 4.1) },
+      { id: 'door2_next', rm: 2, label: '3. Ofise (İki Katlı Plaza) geçiş', pos: new THREE.Vector3(34.6, 1.3, 0) },
+      { id: 'hr', rm: 2, label: 'Çalışan ve ofis yönetimi', pos: new THREE.Vector3(26.5, 1.2, 3.3) },
+      { id: 'bosschair2', rm: 2, label: 'Patron koltuğu / AFK modu', pos: new THREE.Vector3(26.5, 0.9, 2.45) },
+      { id: 'coffee', rm: 2, label: 'Kahve makinesi', pos: new THREE.Vector3(25.85, 1.1, 0.2) },
+      { id: 'lounge', rm: 2, label: 'Dinlenme koltuğu', pos: new THREE.Vector3(32.8, 0.7, 3.45) },
+
+      // 3. Ofis (rm: 3)
+      { id: 'office3exit', rm: 3, label: '2. Ofise dön', pos: new THREE.Vector3(40.5, 1.3, 0) },
+      { id: 'office3next', rm: 3, label: '4. Ofise (Lüks Gökdelen) geçiş', pos: new THREE.Vector3(59.5, 1.3, 0) },
+      { id: 'hr3', rm: 3, label: 'Çalışan yönetimi (resepsiyon)', pos: new THREE.Vector3(42.4, 1.25, -1.2) },
+      { id: 'mgrpc', rm: 3, label: 'Yönetici bilgisayarı', pos: new THREE.Vector3(56.5, 5.2, -4.6) },
+      { id: 'mgrchair', rm: 3, label: 'Yönetici koltuğu / AFK modu', pos: new THREE.Vector3(56.5, 4.9, -3.5) },
+      { id: 'coffee', rm: 3, label: 'Kahve makinesi', pos: new THREE.Vector3(59.0, 1.1, 2.4) },
+      { id: 'coffee_vip3', rm: 3, label: 'Yönetici kahve makinesi', pos: new THREE.Vector3(52.8, 5.2, -5.1) },
+      { id: 'lounge', rm: 3, label: 'Dinlenme koltuğu', pos: new THREE.Vector3(42.1, 0.7, 3.6) },
+
+      // 4. Ofis (rm: 4)
+      { id: 'office4exit', rm: 4, label: '3. Ofise dön', pos: new THREE.Vector3(66.5, 1.3, 0) },
+      { id: 'mgrpc4', rm: 4, label: 'CEO Bilgisayarı', pos: new THREE.Vector3(80.2, 1.2, -2.2) },
+      { id: 'bosschair4', rm: 4, label: 'CEO Koltuğu / AFK modu', pos: new THREE.Vector3(79.3, 0.9, -2.2) },
+      { id: 'coffee', rm: 4, label: 'VIP Kahve Barı', pos: new THREE.Vector3(80.2, 1.1, 0.3) },
+      { id: 'lounge', rm: 4, label: 'VIP Deri Koltuk', pos: new THREE.Vector3(79.8, 0.7, 2.8) }
+    ];
+
+    // --- HAREKET, KAMERA VE KONTROLLER ---
+    const keys = {};
+    let yaw = 0, pitch = 0, last = performance.now(), computerOpen = false, dragLook = false, lastPointerX = 0, lastPointerY = 0;
+    let gameActive = false, paused = false, wasLocked = false, lvl = 0, wasS = false, jy = 0, jv = 0, baseY = 0;
+    const R = 0.32;
+    const BND = [[-3.85, 3.85, -3.85, 3.85], [9.25, 18.75, -4.15, 4.15], [25.25, 34.75, -4.15, 4.15], [40.4, 59.6, -5.6, 5.6], [66.4, 81.6, -5.6, 5.6]];
+
+    function sens() { return (+localStorage.getItem('rg_sens') || 2.2) * 0.001; }
+    function room() { return state.currentRoom || 0; }
+    function V7r(r) {
+      state.currentRoom = r;
+      lvl = 0; wasS = false; jy = 0; jv = 0; baseY = 0;
+      scene.fog.near = (r === 3 || r === 4) ? 60 : 12;
+      scene.fog.far = (r === 3 || r === 4) ? 160 : 36;
+    }
+
+    function resize() {
+      const w = world.clientWidth, h = world.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    new ResizeObserver(resize).observe(world);
+    resize();
+
+    function updateCamera() {
+      camera.rotation.order = 'YXZ';
+      camera.rotation.y = yaw;
+      camera.rotation.x = pitch;
+    }
+
+    function lock() {
+      if(!computerOpen && gameActive && document.pointerLockElement !== canvas) {
+        try {
+          const p = canvas.requestPointerLock?.();
+          if(p && p.catch) p.catch(() => {});
+        } catch {}
+      }
+    }
+
+    canvas.addEventListener('click', () => { if(gameActive && !computerOpen) lock(); });
+    canvas.addEventListener('pointerdown', e => {
+      if(!gameActive || computerOpen || state.locked) return;
+      dragLook = true;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      canvas.setPointerCapture?.(e.pointerId);
+    });
+    canvas.addEventListener('pointerup', () => dragLook = false);
+    canvas.addEventListener('pointercancel', () => dragLook = false);
+    document.addEventListener('mousemove', e => {
+      if(!state.locked && !dragLook) return;
+      const dx = state.locked ? e.movementX : e.clientX - lastPointerX;
+      const dy = state.locked ? e.movementY : e.clientY - lastPointerY;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      if(Math.abs(dx) > 250 || Math.abs(dy) > 250) return;
+      yaw -= dx * sens();
+      pitch -= dy * sens();
+      pitch = Math.max(-1.15, Math.min(1.15, pitch));
+      updateCamera();
+    });
+
+    document.addEventListener('keydown', e => {
+      if(!gameActive || computerOpen || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
+      if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','Space'].includes(e.code)) e.preventDefault();
+      keys[e.code] = true;
+      if(e.code === 'KeyE' && !e.repeat) interact();
+      if(e.code === 'Escape' && state.locked) document.exitPointerLock?.();
+    });
+    document.addEventListener('keyup', e => keys[e.code] = false);
+
+    document.querySelectorAll('#company-game [data-move]').forEach(btn => {
+      const code = btn.dataset.move;
+      const down = e => { e.preventDefault(); if(gameActive && !computerOpen && !state.sitting) keys[code] = true; };
+      const up = e => { e.preventDefault(); keys[code] = false; };
+      btn.addEventListener('pointerdown', down);
+      ['pointerup','pointercancel','pointerleave'].forEach(ev => btn.addEventListener(ev, up));
+    });
+    $('cg-touch-action').addEventListener('pointerdown', e => { e.preventDefault(); if(gameActive && !computerOpen) interact(); });
+    window.addEventListener('blur', () => { Object.keys(keys).forEach(k => keys[k] = false); dragLook = false; });
+
+    function hit(x, z, rm, lv, iS) {
+      for(const c of COL) {
+        if(c.rm !== rm) continue;
+        if(iS ? c.lv !== 2 : (c.lv !== 2 && c.lv !== lv)) continue;
+        if(x - R < c.x1 && x + R > c.x0 && z - R < c.z1 && z + R > c.z0) return true;
+      }
+      return false;
+    }
+
+    function stepPlayer(dt) {
+      if(paused) return;
+      const rm = room(), p = camera.position, b = BND[rm];
+      let f = 0, s = 0;
+      if(!state.sitting) {
+        f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0);
+        s = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
+      }
+      const l = Math.hypot(f, s) || 1;
+      const sp = (keys.ShiftLeft || keys.ShiftRight ? 5.2 : 3.15) * dt / l;
+      const dx = (-Math.sin(yaw) * f + Math.cos(yaw) * s) * sp;
+      const dz = (-Math.cos(yaw) * f - Math.sin(yaw) * s) * sp;
+      if(dx || dz) {
+        const iS = rm === 3 && wasS;
+        if(!hit(p.x + dx, p.z, rm, lvl, iS)) p.x += dx;
+        if(!hit(p.x, p.z + dz, rm, lvl, iS)) p.z += dz;
+      }
+      p.x = Math.max(b[0], Math.min(b[1], p.x));
+      p.z = Math.max(b[2], Math.min(b[3], p.z));
+      const ins = rm === 3 && p.x > 44 && p.x < 52 && p.z > 3.2 && p.z < 5.2;
+      if(ins) baseY = (p.x - 44) / 8 * 4.2;
+      else {
+        if(wasS) lvl = p.x >= 52 ? 1 : 0;
+        baseY = lvl ? 4.2 : 0;
+      }
+      wasS = ins;
+      if(keys.Space && jy <= 0 && jv <= 0 && !state.sitting) jv = 4.4;
+      jv -= 12 * dt;
+      jy += jv * dt;
+      if(jy < 0) { jy = 0; jv = 0; }
+      p.y = state.sitting ? baseY + 1.38 : baseY + 1.65 + jy;
+    }
+
+    const N3 = ['office3exit', 'hr3', 'mgrpc', 'mgrchair'];
+    function V7skip(t) {
+      if(state.inOffice3) return !N3.includes(t.id);
+      if(N3.includes(t.id)) return true;
+      if(t.id === 'office3door') return !(state.inOffice2 && state.office3Owned);
+      return false;
+    }
+
+    function nearestTarget() {
+      const rm = room();
+      let best = null, bestD = 2.45;
+      for(const t of targets) {
+        if(t.rm !== rm) continue;
+        if(t.id === 'door1_next' && !state.office2Owned) continue;
+        if(t.id === 'door2_next' && !state.office3Owned) continue;
+        if(t.id === 'office3next' && !state.office4Owned) continue;
+        const d = camera.position.distanceTo(t.pos);
+        if(d < bestD) { best = t; bestD = d; }
+      }
+      return best;
+    }
+
+    // --- BİLGİSAYAR, PROJE VE OFİS YÖNETİMİ ---
+    function openComputer() {
+      computerOpen = true;
+      if(state.locked) document.exitPointerLock?.();
+      $('cg-computer-ui').classList.remove('cg-hidden');
+      $('cg-lesson').classList.toggle('cg-hidden', state.lessonDone);
+      $('cg-project').classList.toggle('cg-hidden', !state.lessonDone);
+      $('cg-pc-title').textContent = state.company + ' • Geliştirme bilgisayarı';
+      $('cg-pc-intro').textContent = state.lessonDone ? 'İlk ders tamamlandı. Şirketin için yeni oyunlar geliştirebilirsin.' : '2000 yılının klasik CRT bilgisayarında ilk programını yaz.';
+      updateProjectPanel();
+    }
+
+    function updateProjectPanel() {
+      if(!state.lessonDone) return;
+      const names = ['Mini Macera', 'Piksel Yarışı', 'Uzay Görevi', 'Dedektif 2001', 'Şehir Kurucu', 'Siber Efsane'];
+      const name = names[(state.projects - 1) % names.length];
+      $('cg-project-title').textContent = state.projects === 1 ? 'İlk oyunun: ' + name : 'Yeni projen: ' + name;
+      $('cg-project-desc').textContent = state.projects === 1 ? 'İlk küçük oyun prototipini hazırladın. Yayınlayarak ilk gelirini elde et.' : 'Yeni oyununun prototipi hazır. Her yayın yeni müşteri ve gelir getirebilir.';
+      $('cg-release').classList.toggle('cg-hidden', state.projects === 1 ? state.released : !state.projectReady);
+      $('cg-release').textContent = 'Oyunu yayınla (+' + (150 + Math.min(state.projects - 1, 5) * 75) + '$)';
+      $('cg-next-project').classList.toggle('cg-hidden', !state.released || state.projectReady);
+      $('cg-project-loop-note').classList.toggle('cg-hidden', !state.projectReady);
+    }
+
+    function closeComputer() {
+      computerOpen = false;
+      lock();
+      $('cg-computer-ui').classList.add('cg-hidden');
+    }
+
+    $('cg-close-pc').onclick = closeComputer;
+    $('cg-run-code').onclick = () => {
+      const code = $('cg-code').value.trim();
+      if(code === 'print("Merhaba oyun dünyası!")' || code === "print('Merhaba oyun dünyası!')") {
+        if(!state.lessonDone) {
+          state.lessonDone = true;
+          state.skill = Math.max(state.skill, 1);
+          advanceDays(1);
+          $('cg-output').textContent = 'Merhaba oyun dünyası!\n\nTebrikler! İlk programını başarıyla çalıştırdın. Yazılım becerin arttı.';
+          $('cg-lesson').classList.add('cg-hidden');
+          $('cg-project').classList.remove('cg-hidden');
+          updateProjectPanel();
+          save();
+        } else {
+          $('cg-output').textContent = 'Program başarıyla çalıştı.';
+        }
+      } else {
+        $('cg-output').textContent = 'Hata: Kod beklenen komutla eşleşmiyor. Tırnak işaretlerini ve parantezleri kontrol et.';
+      }
+    };
+
+    $('cg-release').onclick = () => {
+      if(state.projects === 1 && state.released) return;
+      if(state.projects > 1 && !state.projectReady) return;
+      const specialistBonus = state.staff.reduce((sum, w) => sum + (w.role === 'artist' ? 30 : w.role === 'tester' ? 20 : w.role === 'marketer' ? 45 : 0), 0);
+      const income = 150 + Math.min(state.projects - 1, 5) * 75 + specialistBonus;
+      const title = $('cg-project-title').textContent.replace(/^(İlk oyunun: |Yeni projen: )/, '');
+      bkGame(income);
+      state.released = true;
+      state.projectReady = false;
+      state.money += income;
+      advanceDays(3);
+      state.skill = Math.max(state.skill, 2) + 1;
+      $('cg-pc-status').textContent = '🎉 ' + title + ' yayınlandı! Satışlardan ' + income + '$ kazandın.';
+      save();
+      updateProjectPanel();
+      hud();
+    };
+
+    $('cg-next-project').onclick = () => {
+      if(state.money < 100) {
+        $('cg-pc-status').textContent = 'Yeni oyun geliştirmek için 100$ gerekiyor.';
+        return;
+      }
+      state.money -= 100;
+      state.projects++;
+      state.projectReady = true;
+      advanceDays(2);
+      $('cg-pc-status').textContent = '🛠️ Yeni oyunun prototipi hazırlandı. Şimdi yayınlayabilirsin!';
+      save();
+      updateProjectPanel();
+      hud();
+    };
+
+    $('cg-buy-office').onclick = () => {
+      if(state.officeOwned) return;
+      if(state.money < 2000) {
+        $('cg-office-status').textContent = '1. Ofisi satın almak için 2.000$ gerekiyor.';
+        return;
+      }
+      state.money -= 2000;
+      state.officeOwned = true;
+      officeGroup.visible = true;
+      save();
+      hud();
+      $('cg-office-buy').classList.add('cg-hidden');
+      $('cg-office-manage').classList.remove('cg-hidden');
+      $('cg-office-title').textContent = '🏢 1. Ofis satın alındı!';
+      $('cg-office-desc').textContent = 'Artık yeni stüdyona geçebilir ve çalışanlarını işe alabilirsin.';
+      $('cg-office-status').textContent = '1. Ofis satın alındı! Kapıya E ile basarak içeri gir.';
+      updateWorkers();
+    };
+
+    $('cg-buy-office2').onclick = () => {
+      if(state.office2Owned) return;
+      if(!state.officeOwned) { $('cg-office-status').textContent = 'Önce 1. ofisi satın almalısın.'; return; }
+      if(state.money < 5000) { $('cg-office-status').textContent = '2. ofis için 5.000$ gerekiyor.'; return; }
+      state.money -= 5000;
+      state.office2Owned = true;
+      office2Group.visible = true;
+      updateWorkers();
+      save();
+      hud();
+      $('cg-office-status').textContent = '🎉 2. Ofis (Modern Teknoloji) açıldı! Sağ duvardaki kapıdan geçebilirsin.';
+    };
+
+    $('cg-hire-worker').onclick = () => {
+      if(state.employees >= capNow()) {
+        $('cg-office-status').textContent = 'Mevcut ofis kapasitesi dolu. Yeni ofis açarak kapasiteyi artırabilirsin.';
+        return;
+      }
+      if(state.money < 500) {
+        $('cg-office-status').textContent = 'Bir çalışan işe almak için 500$ gerekiyor.';
+        return;
+      }
+      state.money -= 500;
+      state.staff.push({ id: 'staff-' + Date.now(), name: staffNames[state.staff.length % staffNames.length], role: null });
+      state.employees = state.staff.length;
+      updateWorkers();
+      save();
+      hud();
+      $('cg-office-status').textContent = '👋 Yeni çalışan işe alındı! Aşağıdan görev atayarak her 5 sn’de 50$ kazanmaya başla.';
+    };
+
+    $('cg-close-office').onclick = () => {
+      $('cg-office-ui').classList.add('cg-hidden');
+      computerOpen = false;
+      lock();
+    };
+
+    $('cg-leave-office').onclick = () => {
+      $('cg-office-ui').classList.add('cg-hidden');
+      computerOpen = false;
+      leaveOffice();
+    };
+
+    $('cg-start-btn').onclick = () => {
+      state.company = $('cg-company-name').value.trim() || state.company || 'RED GAMES STUDIO';
+      $('cg-start').classList.add('cg-hidden');
+      gameActive = true;
+      save();
+      canvas.focus();
+    };
+
+    // Duraklatma menüsü
+    const pm = document.createElement('div');
+    pm.style.cssText = 'position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,14,20,.78);backdrop-filter:blur(6px);z-index:30;color:#fff;text-align:center';
+    pm.innerHTML = '<div style="background:#141f33;border:1px solid #354761;border-radius:16px;padding:24px 28px;max-width:340px"><h3 style="margin:0 0 8px">⏸ Duraklatıldı</h3><p style="margin:0 0 12px;font-size:13px;opacity:.85">WASD hareket • Fare bakış • Space zıpla • Shift koş • E etkileşim • TAB telefon</p><label style="font-size:13px">Fare hassasiyeti<input id="cg-sens" type="range" min="1" max="8" step=".5" style="width:100%"></label><br><button id="cg-resume" style="margin-top:12px;padding:9px 18px;border:0;border-radius:9px;background:#e0a64b;color:#181e27;font-weight:800;cursor:pointer">Devam et</button></div>';
+    world.appendChild(pm);
+    const sl = pm.querySelector('#cg-sens');
+    sl.value = localStorage.getItem('rg_sens') || 2.2;
+    sl.oninput = () => localStorage.setItem('rg_sens', sl.value);
+    function pause(on) {
+      paused = on;
+      pm.style.display = on ? 'flex' : 'none';
+      if(on) {
+        Object.keys(keys).forEach(k => keys[k] = false);
+        document.exitPointerLock?.();
+      } else {
+        lock();
+      }
+    }
+    pm.querySelector('#cg-resume').onclick = () => pause(false);
+    document.addEventListener('pointerlockchange', () => {
+      state.locked = document.pointerLockElement === canvas;
+      if(state.locked) wasLocked = true;
+      else if(wasLocked) {
+        wasLocked = false;
+        if(gameActive && !computerOpen && !paused) pause(true);
+      }
+    });
+    document.addEventListener('keydown', e => {
+      if(e.code !== 'Escape' || !gameActive || computerOpen) return;
+      if(paused) pause(false);
+      else if(!document.pointerLockElement) pause(true);
+    });
+
+    // --- OFİS VE ETKİLEŞİM FONKSİYONLARI ---
+    function showOfficePanel() {
+      computerOpen = true;
+      if(state.locked) document.exitPointerLock?.();
+      $('cg-office-ui').classList.remove('cg-hidden');
+      $('cg-office-buy').classList.toggle('cg-hidden', !!state.officeOwned);
+      $('cg-office-manage').classList.toggle('cg-hidden', !state.officeOwned);
+      $('cg-office-title').textContent = state.officeOwned ? '🏢 ' + state.company + ' • Ofis ve Ekip Yönetimi' : '🏢 1. Ofis: Indie Stüdyo Satın Al';
+      $('cg-office-desc').textContent = state.officeOwned
+        ? 'Çalışanların her 5 saniyede bir 50$ kazandırır. Yeni ofis katları açarak kapasiteni 34 çalışana çıkarabilirsin.'
+        : 'Küçük odandan daha geniş bir indie stüdyoya geç. Satın aldıktan sonra çalışanlarını işe alabilirsin.';
+      $('cg-office-status').textContent = '';
+      updateWorkers();
+    }
+
+    function enterOffice() {
+      V7r(1);
+      camera.position.set(14, 1.65, 2.8);
+      yaw = 0; pitch = 0; updateCamera();
+      $('cg-hint').textContent = '1. Ofis (Indie Stüdyo). Masandan çalışanları yönet veya kahve iç!';
+    }
+
+    function enterOffice2() {
+      if(!state.office2Owned) return;
+      V7r(2);
+      camera.position.set(30, 1.65, 2.8);
+      yaw = 0; pitch = 0; updateCamera();
+      $('cg-hint').textContent = '2. Ofis (Modern Teknoloji Stüdyosu).';
+    }
+
+    function enterOffice3() {
+      if(!state.office3Owned) return;
+      V7r(3);
+      camera.position.set(41.6, 1.65, 0);
+      yaw = -Math.PI / 2; pitch = 0; updateCamera();
+      $('cg-hint').textContent = '3. Ofis (İki Katlı Plaza): Üst katta yönetici ofisi bulunur.';
+    }
+
+    function enterOffice4() {
+      if(!state.office4Owned) return;
+      V7r(4);
+      camera.position.set(67.6, 1.65, 0);
+      yaw = -Math.PI / 2; pitch = 0; updateCamera();
+      $('cg-hint').textContent = '4. Ofis (Lüks Gökdelen Penthouse): Panoramik manzaralı VIP kat!';
+    }
+
+    function leaveOffice() {
+      V7r(0);
+      camera.position.set(0.95, 1.65, -3.1);
+      yaw = 0; pitch = 0; updateCamera();
+      $('cg-hint').textContent = 'Başlangıç odana döndün. W A S D ile hareket et.';
+    }
+
+    function sitAt(x, y, z, sYaw = 0, msgText = '🪑 Koltuğa oturdun. E ile kalk.') {
+      state.sitting = !state.sitting;
+      state.afkSeconds = 0;
+      keys.KeyW = keys.KeyA = keys.KeyS = keys.KeyD = false;
+      if(state.sitting) {
+        camera.position.set(x, y, z);
+        yaw = sYaw; pitch = 0; updateCamera();
+        $('cg-hint').textContent = msgText;
+      } else {
+        camera.position.z += 0.7;
+        $('cg-hint').textContent = 'Koltuktan kalktın.';
+      }
+      world.classList.toggle('is-sitting', state.sitting);
+      save();
+    }
+
+    function interact() {
+      const t = nearestTarget();
+      if(!t) {
+        $('cg-hint').textContent = 'Yakında etkileşime girebileceğin bir eşya yok.';
+        return;
+      }
+      if(paused || menuOpen) return;
+
+      if(t.id === 'coffee' || t.id === 'coffee_vip3') {
+        state.energy = Math.min(100, (state.energy || 80) + 25);
+        state.inspiration++;
+        $('cg-hint').textContent = '☕ Taze kahve içtin! Enerji %' + state.energy + ' • İlham +1 (' + state.inspiration + ')';
+        save();
+        return;
+      }
+      if(t.id === 'lounge') {
+        state.energy = Math.min(100, (state.energy || 80) + 15);
+        $('cg-hint').textContent = '🛋️ Rahat koltukta biraz dinlendin. Enerji %' + state.energy;
+        save();
+        return;
+      }
+
+      if(t.id === 'hr' || t.id === 'hr3') { showOfficePanel(); return; }
+      if(t.id === 'mgrpc' || t.id === 'mgrpc4') { openComputer(); return; }
+      if(t.id === 'door0') { if(state.officeOwned) enterOffice(); else showOfficePanel(); return; }
+      if(t.id === 'door1_exit') { leaveOffice(); return; }
+      if(t.id === 'door1_next') { enterOffice2(); return; }
+      if(t.id === 'door2_exit') { enterOffice(); return; }
+      if(t.id === 'door2_next') { enterOffice3(); return; }
+      if(t.id === 'office3exit') { enterOffice2(); return; }
+      if(t.id === 'office3next') { enterOffice4(); return; }
+      if(t.id === 'office4exit') { enterOffice3(); return; }
+
+      if(t.id === 'bosschair1') { sitAt(10.4, 1.38, 2.45, Math.PI, '🪑 Patron koltuğu: AFK kazancı aktif (10 sn / +25$). E ile kalk.'); return; }
+      if(t.id === 'bosschair2') { sitAt(26.5, 1.38, 2.45, Math.PI, '🪑 Patron koltuğu: AFK kazancı aktif (10 sn / +25$). E ile kalk.'); return; }
+      if(t.id === 'mgrchair') { sitAt(56.5, 5.58, -3.5, 0, '🪑 Yönetici koltuğu: AFK kazancı aktif (10 sn / +25$). E ile kalk.'); return; }
+      if(t.id === 'bosschair4') { sitAt(79.3, 1.38, -2.2, -Math.PI / 2, '🪑 CEO koltuğu: AFK kazancı aktif (10 sn / +25$). E ile kalk.'); return; }
+
+      if(t.id === 'pc') {
+        if(!state.hasPC) {
+          if(state.money < 420) {
+            $('cg-hint').textContent = 'Bilgisayar için 420$ gerekiyor.';
+            return;
+          }
+          state.money -= 420;
+          state.hasPC = true;
+          crtSetup.screenMesh.material = crtScreenOnMat;
+          $('cg-pc-intro').textContent = 'İkinci el CRT bilgisayarın çalışıyor. İlk yazılım dersine başlayabilirsin.';
+          save();
+          $('cg-hint').textContent = 'Bilgisayar satın alındı ve açıldı! E ile kullan.';
+          return;
+        }
+        openComputer();
+        return;
+      }
+      if(t.id === 'books') {
+        state.booksRead++;
+        advanceDays(1);
+        if(state.booksRead % 3 === 0) state.skill++;
+        $('cg-hint').textContent = state.booksRead % 3 === 0
+          ? '📚 Oyun geliştirme kitabını bitirdin! Yazılım becerin +1.'
+          : '📖 Teknik kitap okudun. Günün ilerledi ve bilgin arttı.';
+        save();
+        return;
+      }
+      if(t.id === 'chair') {
+        sitAt(-2.35, 1.38, -2.05, 0, '🪑 AFK modu açık! Sandalyede bekledikçe her 10 saniyede 25$ kazanırsın. E ile kalk.');
+        return;
+      }
+      if(t.id === 'bed') {
+        const result = advanceDays(1);
+        state.energy = 100;
+        $('cg-hint').textContent = '🛏️ Yeni gün! Enerjin %100 oldu. Ekip geliri: +' + result.gross + '$ • Maaş: -' + result.wages + '$.';
+        save();
+        return;
+      }
+      if(t.id === 'radio') {
+        state.radioOn = !state.radioOn;
+        $('cg-hint').textContent = state.radioOn ? '📻 Retro radyoyu açtın. Stüdyoda 2000’ler havası esiyor!' : '📻 Radyoyu kapattın.';
+        save();
+        return;
+      }
+    }
+    // Ofis satın alma ve çalışan yönetimi
+    const b3 = $('cg-buy-office3');
+    const b4 = $('cg-buy-office4');
+    if(b3) {
+      b3.onclick = () => {
+        const st = $('cg-office-status');
+        if(state.office3Owned) return;
+        if(!state.office2Owned) { st.textContent = 'Önce 2. ofisi açmalısın.'; return; }
+        if(state.money < 15000) { st.textContent = '3. ofis için 15.000$ gerekiyor.'; return; }
+        state.money -= 15000;
+        state.office3Owned = true;
+        off3.visible = true;
+        updateWorkers();
+        save();
+        hud();
+        st.textContent = '🏛️ 3. Ofis (İki Katlı Plaza) açıldı! 2. ofisin sağ duvarındaki kapıdan geçebilirsin.';
+      };
+    }
+    if(b4) {
+      b4.onclick = () => {
+        const st = $('cg-office-status');
+        if(state.office4Owned) return;
+        if(!state.office3Owned) { st.textContent = 'Önce 3. ofisi açmalısın.'; return; }
+        if(state.money < 35000) { st.textContent = '4. ofis (Lüks Gökdelen) için 35.000$ gerekiyor.'; return; }
+        state.money -= 35000;
+        state.office4Owned = true;
+        off4.visible = true;
+        updateWorkers();
+        save();
+        hud();
+        st.textContent = '🏙️ 4. Ofis (Lüks Gökdelen Penthouse) açıldı! Kapasiten 34 çalışana yükseldi.';
+      };
+    }
+
+    function updateWorkers() {
+      workerModels.forEach((w, i) => {
+        if(w) w.visible = i < state.employees && (i < 4 ? state.officeOwned : i < 8 ? state.office2Owned : i < 22 ? state.office3Owned : state.office4Owned);
+      });
+      $('cg-employee-count').textContent = 'Çalışan: ' + state.employees + ' / ' + capNow();
+      $('cg-hire-worker').disabled = state.employees >= capNow() || state.money < 500;
+      $('cg-buy-office2').disabled = state.office2Owned || state.money < 5000;
+      if(b3) b3.disabled = state.office3Owned || !state.office2Owned || state.money < 15000;
+      if(b4) b4.disabled = state.office4Owned || !state.office3Owned || state.money < 35000;
+      $('cg-office2-status').textContent = 'Açık ofisler: 1. Ofis' + (state.office2Owned ? ' • 2. Ofis' : '') + (state.office3Owned ? ' • 3. Ofis' : '') + (state.office4Owned ? ' • 4. Gökdelen' : '') + ' (Kapasite: ' + capNow() + ')';
+      renderStaff();
+    }
+
+    // --- ANA MENÜ, KAYITLAR VE AKILLI TELEFON ---
+    const CF = Object.assign({ vol: 0.6, music: false, gfx: 2, phoneKey: 'Tab', notif: true }, JSON.parse(localStorage.getItem('rgs_cfg') || '{}'));
+    const cfSave = () => localStorage.setItem('rgs_cfg', JSON.stringify(CF));
+    let menuOpen = true, phoneOpen = false, prevMoney = state.money, actx = null, mus = null, rebind = false;
+    ['ledger', 'msgs', 'games'].forEach(k => { if(!Array.isArray(state[k])) state[k] = []; });
+    state.savings = state.savings || 0;
+    state.player = state.player || 'Oyuncu';
+
+    const mFmt = n => (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('tr-TR') + '$';
+    const R_ = (a, b) => `<div class="r"><span>${a}</span><b>${b}</b></div>`;
+
+    function toast(t) {
+      if(!t) return;
+      const d = document.createElement('div');
+      d.className = 'rgt';
+      d.textContent = t;
+      document.body.append(d);
+      setTimeout(() => d.remove(), 2600);
+    }
+
+    function led(t, a) {
+      state.ledger.unshift({ d: state.day, t, a });
+      state.ledger.length = Math.min(state.ledger.length, 40);
+    }
+
+    function msg(from, text, offer) {
+      state.msgs.unshift({ from, text, day: state.day, offer: offer || 0, done: false });
+      state.msgs.length = Math.min(state.msgs.length, 30);
+      if(CF.notif && !menuOpen) toast('📱 ' + from + ': ' + text.slice(0, 50));
+    }
+
+    function bk(g, w) {
+      led('Günlük gelir', g);
+      led('Maaş ödemeleri', -w);
+      prevMoney = state.money;
+      msg('Günlük rapor', 'Gelir ' + g + '$, maaş ' + w + '$, net ' + (g - w) + '$.');
+      const s = state.staff;
+      if(s.length && Math.random() < 0.5) {
+        msg(s[(Math.random() * s.length) | 0].name, ['Projede harika ilerliyoruz!', 'Stüdyo kahvesi çok iyi.', 'Yeni bir oyun mekaniği fikrim var.'][(Math.random() * 3) | 0]);
+      }
+    }
+
+    function bkGame(inc) {
+      const n = ((($('cg-project-title') || {}).textContent) || 'Oyun').replace(/^(İlk oyunun: |Yeni projen: )/, '');
+      state.games.push({ n, inc, day: state.day, q: 55 + ((Math.random() * 40) | 0) });
+      led('Oyun satışı', inc);
+      prevMoney += inc;
+      msg('Yayıncı Delta', '"' + n + '" çok beğenildi! Sözleşme avansı teklifi var.', Math.round(inc * 0.5));
+    }
+
+    const daily = () => ({ g: state.staff.reduce((s, w) => s + (w.role && roleData[w.role] ? roleData[w.role].daily : 0), 0), w: state.staff.length * 50 });
+    const lv = () => 1 + (state.released ? 1 : 0) + (state.officeOwned ? 1 : 0) + (state.office2Owned ? 1 : 0) + (state.office3Owned ? 1 : 0) + Math.floor(state.games.length / 3);
+
+    function applyGfx() {
+      const g = CF.gfx;
+      renderer.setPixelRatio(g === 0 ? 0.75 : g === 1 ? 1.2 : Math.min(devicePixelRatio, 2));
+      renderer.shadowMap.enabled = g > 0;
+      renderer.setSize(world.clientWidth, world.clientHeight, false);
+    }
+
+    function music(on) {
+      try {
+        if(on && !mus) {
+          actx = actx || new AudioContext();
+          const g = actx.createGain();
+          g.gain.value = CF.vol * 0.12;
+          g.connect(actx.destination);
+          const os = [110, 164.8, 220, 277.2].map((f, i) => {
+            const o = actx.createOscillator();
+            o.type = i % 2 ? 'sine' : 'triangle';
+            o.frequency.value = f;
+            const l = actx.createOscillator();
+            l.frequency.value = 0.07 + i * 0.03;
+            const lg = actx.createGain();
+            lg.gain.value = 3;
+            l.connect(lg);
+            lg.connect(o.frequency);
+            l.start();
+            o.connect(g);
+            o.start();
+            return [o, l];
+          });
+          mus = { g, os };
+        } else if(!on && mus) {
+          mus.os.forEach(a => a.forEach(x => x.stop()));
+          mus = null;
+        }
+      } catch {}
+    }
+
+    const SET = () => `<h4>Ayarlar</h4><label>Ses<input type="range" data-s="vol" min="0" max="1" step=".05" value="${CF.vol}"></label><button data-a="mus">Müzik: ${CF.music ? 'Açık' : 'Kapalı'}</button><div>Grafik: ${['Düşük', 'Orta', 'Yüksek'].map((l, i) => `<button data-a="gfx" data-v="${i}"${CF.gfx === i ? ' class="on"' : ''}>${l}</button>`).join('')}</div><label>Fare hassasiyeti<input type="range" data-s="sens" min="1" max="8" step=".5" value="${localStorage.getItem('rg_sens') || 2.2}"></label><button data-a="key">Telefon tuşu: ${rebind ? 'bir tuşa bas…' : CF.phoneKey}</button><button data-a="ntf">Bildirimler: ${CF.notif ? 'Açık' : 'Kapalı'}</button>`;
+
+    function bindSet(el, refresh) {
+      el.addEventListener('click', e => {
+        const b = e.target.closest('[data-a]');
+        if(!b) return;
+        const a = b.dataset.a;
+        if(a === 'mus') { CF.music = !CF.music; music(CF.music); }
+        else if(a === 'gfx') { CF.gfx = +b.dataset.v; applyGfx(); }
+        else if(a === 'key') { rebind = true; }
+        else if(a === 'ntf') CF.notif = !CF.notif;
+        else return;
+        cfSave();
+        refresh();
+      });
+      el.addEventListener('input', e => {
+        const s = e.target.dataset.s;
+        if(s === 'vol') {
+          CF.vol = +e.target.value;
+          if(mus) mus.g.gain.value = CF.vol * 0.12;
+          cfSave();
+        } else if(s === 'sens') {
+          localStorage.setItem('rg_sens', e.target.value);
+          const q = document.getElementById('cg-sens');
+          if(q) q.value = e.target.value;
+        }
+      });
+    }
+
+    const mm = document.createElement('div');
+    mm.id = 'mm';
+    mm.innerHTML = `<div class="box"><h1>RED GAMES<br><b>STUDIO</b></h1><div class="tg">TYCOON</div><div id="mn"><button class="mb" data-m="play">▶ OYNA</button><button class="mb" data-m="new">✚ YENİ OYUN</button><button class="mb" data-m="saves">💾 KAYITLAR</button><button class="mb" data-m="set">⚙ AYARLAR</button><button class="mb" data-m="about">ℹ OYUN HAKKINDA</button><button class="mb" data-m="quit">⏻ ÇIKIŞ</button></div><div id="mp"></div></div>`;
+    document.body.append(mm);
+    const mp = mm.querySelector('#mp'), mn = mm.querySelector('#mn');
+    const slotInfo = n => { try { const s = JSON.parse(localStorage.getItem('rgs_slot_' + n) || 'null'); return s && s.version === 1 ? s : null; } catch { return null; } };
+
+    function panel(h, back = true) {
+      mp.innerHTML = '<div class="pn">' + h + (back ? '<button data-m="back">◀ Geri</button>' : '') + '</div>';
+      mn.style.display = h ? 'none' : '';
+      if(!h) mp.innerHTML = '';
+    }
+
+    function startGame() {
+      menuOpen = false;
+      mm.classList.add('hide');
+      camera.position.set(0.4, 1.65, 2.6);
+      yaw = 0.35; pitch = -0.05;
+      updateCamera();
+      $('cg-start-btn').click();
+      lock();
+      $('cg-hint').textContent = 'Fareyi yakalamak için ekrana tıkla • TAB: telefon';
+    }
+
+    mm.addEventListener('click', e => {
+      const b = e.target.closest('[data-m]');
+      if(!b) return;
+      if(CF.music && !mus) music(true);
+      const a = b.dataset.m;
+      if(a === 'back') panel('', false);
+      else if(a === 'play') { if(loadedSave || slotInfo(localStorage.getItem('rgs_active') || '1')) startGame(); else mm.querySelector('[data-m=new]').click(); }
+      else if(a === 'new') panel(`<h4>Yeni oyun</h4>Şirket adı<input id="nc" maxlength="28" value="RED GAMES STUDIO">Oyuncu adı<input id="np" maxlength="20" value="Oyuncu">Başlangıç<select id="nm"><option value="500">Standart — 500$</option><option value="1500">Kolay — 1.500$</option><option value="200">Zor — 200$</option></select>Kayıt yuvası<select id="ns">${[1, 2, 3].map(n => `<option value="${n}">Yuva ${n}${slotInfo(n) ? ' (dolu)' : ' (boş)'}</option>`).join('')}</select><button data-m="go">Şirketi kur</button>`);
+      else if(a === 'go') {
+        const n = $('ns').value;
+        localStorage.setItem('rgs_active', n);
+        state.saveKey = 'rgs_slot_' + n;
+        state.company = $('nc').value.trim() || 'RED GAMES STUDIO';
+        state.player = $('np').value.trim() || 'Oyuncu';
+        state.money = +$('nm').value;
+        save();
+        startGame();
+      }
+      else if(a === 'saves') panel('<h4>Kayıtlar</h4>' + [1, 2, 3].map(n => { const s = slotInfo(n); return `<div class="r"><span>Yuva ${n}: ${s ? s.company + ' • ' + mFmt(s.money) + ' • Gün ' + s.day : 'boş'}</span>${s ? `<button data-m="load" data-n="${n}">Yükle</button><button data-m="del" data-n="${n}">Sil</button>` : ''}</div>`; }).join(''));
+      else if(a === 'load') {
+        localStorage.setItem('rgs_active', b.dataset.n);
+        state.saveKey = 'rgs_slot_' + b.dataset.n;
+        try {
+          const saved = JSON.parse(localStorage.getItem(state.saveKey) || 'null');
+          if(saved) Object.assign(state, saved);
+        } catch {}
+        startGame();
+      }
+      else if(a === 'del') { localStorage.removeItem('rgs_slot_' + b.dataset.n); mm.querySelector('[data-m=saves]').click(); }
+      else if(a === 'set') { panel('<div class="sw"></div>'); const sw = mp.querySelector('.sw'); sw.innerHTML = SET(); bindSet(sw, () => sw.innerHTML = SET()); }
+      else if(a === 'about') panel('<h4>RED GAMES STUDIO TYCOON</h4><p>2000 yılında küçük bir odada başla, ofisini büyüt, çalışan işe al ve kendi oyunlarını yayımla.</p><p class="s">WASD hareket • Fare bakış • Space zıpla • Shift koş • E etkileşim • TAB telefon • ESC duraklat</p>');
+      else if(a === 'quit') { window.close(); panel('<p>Tarayıcı sekmesini kapatarak oyundan çıkabilirsin.</p>'); }
+    });
+    $('cg-start').classList.add('cg-hidden');
+
+    // Akıllı Telefon Arayüzü
+    const APPS = [['company','Şirket','🏢','#3b82f6'],['camera','Kamera','📸','#ec4899'],['gallery','Galeri','🖼️','#a855f7'],['tetris','Tetris','🧱','#06b6d4'],['staff','Çalışanlar','👥','#f59e0b'],['offices','Ofisler','🏙️','#8b5cf6'],['bank','Banka','🏦','#10b981'],['store','Mağaza','🎮','#ef4444'],['msgs','Mesajlar','💬','#14b8a6'],['set','Ayarlar','⚙️','#64748b']];
+    const ph = document.createElement('div');
+    ph.id = 'ph';
+    ph.innerHTML = '<div class="fr"><div class="nt"></div><div class="sc"><div class="sb"><span id="pt"></span><span>📶 🔋</span></div><div class="pc" id="pc"></div><div class="hb"><button data-a="home">⌂ Ana ekran</button><button data-a="shut">✕ Kapat</button></div></div></div>';
+    document.body.append(ph);
+    const pc = ph.querySelector('#pc');
+    const flashEl = document.createElement('div');
+    flashEl.className = 'cam-flash';
+    document.body.append(flashEl);
+
+    // --- TETRİS MİNİ OYUNU ---
+    let tetLoop = null, tetState = null;
+    const TET_SHAPES = [
+      [[1,1,1,1]],
+      [[2,2],[2,2]],
+      [[0,3,0],[3,3,3]],
+      [[4,0,0],[4,4,4]],
+      [[0,0,5],[5,5,5]],
+      [[0,6,6],[6,6,0]],
+      [[7,7,0],[0,7,7]]
+    ];
+    const TET_COLORS = ['#000','#38bdf8','#facc15','#c084fc','#fb923c','#60a5fa','#4ade80','#f87171'];
+
+    function stopTetris() {
+      if(tetLoop) { clearInterval(tetLoop); tetLoop = null; }
+    }
+
+    function initTetris() {
+      stopTetris();
+      const board = Array.from({ length: 18 }, () => Array(10).fill(0));
+      tetState = { board, score: 0, lines: 0, over: false, cur: null };
+      spawnTet();
+      drawTetris();
+      tetLoop = setInterval(() => {
+        if(!phoneOpen || !tetState || tetState.over) return;
+        stepTet(0, 1);
+      }, 480);
+    }
+
+    function spawnTet() {
+      const idx = (Math.random() * TET_SHAPES.length) | 0;
+      const shape = TET_SHAPES[idx].map(r => [...r]);
+      tetState.cur = { shape, x: 3, y: 0 };
+      if(collideTet(tetState.cur.shape, tetState.cur.x, tetState.cur.y)) {
+        tetState.over = true;
+        if(tetState.score > (state.tetrisBest || 0)) {
+          state.tetrisBest = tetState.score;
+          save();
+        }
+      }
+    }
+
+    function collideTet(shape, nx, ny) {
+      for(let r = 0; r < shape.length; r++) {
+        for(let c = 0; c < shape[r].length; c++) {
+          if(!shape[r][c]) continue;
+          const bx = nx + c, by = ny + r;
+          if(bx < 0 || bx >= 10 || by >= 18) return true;
+          if(by >= 0 && tetState.board[by][bx]) return true;
+        }
+      }
+      return false;
+    }
+
+    function rotateTet() {
+      if(!tetState || tetState.over) return;
+      const s = tetState.cur.shape;
+      const rot = s[0].map((_, i) => s.map(row => row[i]).reverse());
+      if(!collideTet(rot, tetState.cur.x, tetState.cur.y)) {
+        tetState.cur.shape = rot;
+        drawTetris();
+      }
+    }
+
+    function stepTet(dx, dy) {
+      if(!tetState || tetState.over) return;
+      const c = tetState.cur;
+      if(!collideTet(c.shape, c.x + dx, c.y + dy)) {
+        c.x += dx; c.y += dy;
+      } else if(dy > 0) {
+        c.shape.forEach((row, r) => row.forEach((v, colIdx) => {
+          if(v && c.y + r >= 0) tetState.board[c.y + r][c.x + colIdx] = v;
+        }));
+        let cleared = 0;
+        for(let r = 17; r >= 0; r--) {
+          if(tetState.board[r].every(v => v > 0)) {
+            tetState.board.splice(r, 1);
+            tetState.board.unshift(Array(10).fill(0));
+            cleared++; r++;
+          }
+        }
+        if(cleared) {
+          tetState.lines += cleared;
+          tetState.score += cleared * 100 * cleared;
+          if(tetState.score > (state.tetrisBest || 0)) { state.tetrisBest = tetState.score; save(); }
+        }
+        spawnTet();
+      }
+      drawTetris();
+    }
+
+    function drawTetris() {
+      const cv = document.getElementById('tetris-canvas');
+      if(!cv || !tetState) return;
+      const ctx = cv.getContext('2d');
+      const sz = 20;
+      ctx.fillStyle = '#060c18';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      for(let x = 0; x <= 10; x++) { ctx.beginPath(); ctx.moveTo(x * sz, 0); ctx.lineTo(x * sz, 360); ctx.stroke(); }
+      for(let y = 0; y <= 18; y++) { ctx.beginPath(); ctx.moveTo(0, y * sz); ctx.lineTo(200, y * sz); ctx.stroke(); }
+
+      const drawCell = (x, y, v) => {
+        ctx.fillStyle = TET_COLORS[v];
+        ctx.fillRect(x * sz + 1, y * sz + 1, sz - 2, sz - 2);
+      };
+      tetState.board.forEach((row, r) => row.forEach((v, c) => { if(v) drawCell(c, r, v); }));
+      if(tetState.cur) {
+        tetState.cur.shape.forEach((row, r) => row.forEach((v, c) => {
+          if(v) drawCell(tetState.cur.x + c, tetState.cur.y + r, v);
+        }));
+      }
+      const scEl = document.getElementById('tet-score');
+      if(scEl) scEl.textContent = 'Skor: ' + tetState.score + ' • Rekor: ' + (state.tetrisBest || 0);
+      if(tetState.over) {
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.fillRect(0, 130, 200, 90);
+        ctx.fillStyle = '#f87171';
+        ctx.font = 'bold 18px Nunito, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('OYUN BİTTİ', 100, 168);
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Nunito, sans-serif';
+        ctx.fillText('Yeniden başlatmak için tıkla', 100, 192);
+      }
+    }
+
+    function takePhoto() {
+      // Telefonu geçici gizleyip temiz 3D kare yakala
+      ph.style.visibility = 'hidden';
+      renderer.render(scene, camera);
+      const snap = document.createElement('canvas');
+      snap.width = 480; snap.height = 300;
+      snap.getContext('2d').drawImage(canvas, 0, 0, snap.width, snap.height);
+      const dataUrl = snap.toDataURL('image/jpeg', 0.78);
+      ph.style.visibility = 'visible';
+
+      flashEl.style.opacity = '0.9';
+      setTimeout(() => flashEl.style.opacity = '0', 180);
+
+      const roomNames = ['Başlangıç Odası', '1. Ofis (Indie)', '2. Ofis (Teknoloji)', '3. Ofis (Plaza)', '4. Ofis (Gökdelen)'];
+      state.photos.unshift({ id: Date.now(), url: dataUrl, place: roomNames[room()] || 'Stüdyo', day: state.day });
+      state.photos.length = Math.min(state.photos.length, 12);
+      save();
+      toast('📸 Fotoğraf çekildi ve Galeriye kaydedildi!');
+      render('camera');
+    }
+
+    const V = {
+      company() { const d = daily(); const activeCount = state.staff.filter(w => w.role).length; return `<h4>${state.company}</h4><span class="s">Kurucu: ${state.player}</span>` + R_('Toplam para', mFmt(state.money)) + R_('Aktif çalışan kazancı', '+' + (activeCount * 50) + '$ / 5 sn') + R_('Günlük maaş gideri', '-' + mFmt(d.w)) + R_('Çalışan sayısı', state.employees + ' / ' + capNow()) + R_('Enerji', '%' + (state.energy ?? 100)) + R_('Şirket seviyesi', 'Sv. ' + lv()) + R_('Yayımlanan oyun', state.games.length); },
+      camera() { const lastP = state.photos[0]; return `<h4>📸 Stüdyo Kamerası</h4><p class="s">Bulunduğun ofisin anlık fotoğrafını çek ve şirket galerisine kaydet.</p><button class="pri" data-a="snap">📷 Fotoğraf Çek</button>` + (lastP ? `<div class="cd"><b>Son Çekim • ${lastP.place} (Gün ${lastP.day})</b><img src="${lastP.url}" alt="Son çekilen fotoğraf" style="width:100%;border-radius:8px;margin-top:6px"><button data-a="app" data-v="gallery" style="margin-top:6px">🖼️ Tüm Galeri (${state.photos.length})</button></div>` : '<span class="s" style="margin-top:10px">Henüz fotoğraf çekmedin.</span>'); },
+      gallery() { return `<h4>🖼️ Galeri (${state.photos.length})</h4>` + (state.photos.length ? `<div class="gal-grid">` + state.photos.map((p, i) => `<div class="gal-item"><img src="${p.url}" alt="${p.place}"><div><span>${p.place}</span><button data-a="delp" data-v="${i}" style="padding:2px 6px;background:#ef4444;color:#fff">Sil</button></div></div>`).join('') + `</div>` : '<span class="s">Galeri boş. Kamera uygulamasından fotoğraf çekebilirsin.</span>'); },
+      tetris() { return `<h4>🧱 Tetris</h4><div id="tet-score" class="s" style="margin-bottom:4px">Skor: 0 • Rekor: ${state.tetrisBest || 0}</div><canvas id="tetris-canvas" width="200" height="360"></canvas><div class="tet-ctrl"><button data-a="tl">◀</button><button data-a="tr">↻</button><button data-a="td">▼</button><button data-a="trt">▶</button></div><button class="pri" data-a="tnew" style="margin-top:6px">Yeni Oyun</button>`; },
+      bank() { return `<h4>Banka</h4>` + R_('Bakiye', mFmt(state.money)) + R_('Tasarruf hesabı', mFmt(state.savings)) + `<button data-a="dep">100$ tasarrufa aktar</button><button data-a="wd">100$ çek</button><h5>Hareketler</h5>` + (state.ledger.slice(0, 14).map(x => R_('Gün ' + x.d + ' • ' + x.t, (x.a > 0 ? '+' : '') + mFmt(x.a))).join('') || '<span class="s">Henüz hareket yok.</span>'); },
+      staff() { return `<h4>Çalışanlar</h4><span class="s">Görevli her çalışan her 5 sn’de +50$ kazandırır.</span><button class="pri" data-a="hire">${$('cg-hire-worker').textContent}</button>` + (state.staff.map((w, i) => `<div class="cd"><b>${w.name}</b><span class="s">${w.role ? roleData[w.role].label + ' • +50$ / 5 sn' : 'Görev bekliyor'} • maaş 50$/gün</span><select data-i="${i}">${[['','Görev ata…'],['programmer','Programcı'],['artist','Tasarımcı'],['tester','Test uzmanı'],['marketer','Pazarlamacı']].map(([v, l]) => `<option value="${v}"${(w.role || '') === v ? ' selected' : ''}>${l}</option>`).join('')}</select><button data-a="fire" data-v="${i}">İşten çıkar</button></div>`).join('') || '<span class="s">Henüz çalışan yok.</span>'); },
+      offices() { const oc = [state.officeOwned, state.office2Owned, state.office3Owned, state.office4Owned]; return `<h4>Ofisler</h4>` + R_('Toplam kapasite', state.employees + ' / ' + capNow()) + [['Başlangıç odası','Başlangıç',true],['1. Ofis: Indie Stüdyo','2.000$ • 4 kişi',oc[0]],['2. Ofis: Modern Teknoloji','5.000$ • 4 kişi',oc[1]],['3. Ofis: İki Katlı Plaza','15.000$ • 14 kişi',oc[2]],['4. Ofis: Lüks Gökdelen','35.000$ • 12 kişi',oc[3]]].map(([n, i, o], k) => `<div class="cd"><b>${n}</b><span class="s">${o ? 'Sahipsin' : i}</span><button data-a="${o ? 'go' : 'buy'}" data-v="${k}">${o ? 'Ofise git' : 'Satın al'}</button></div>`).join(''); },
+      store() { const t = state.games.reduce((s, g) => s + g.inc, 0); return `<h4>Oyun Mağazası</h4>` + R_('Yayımlanan oyun', state.games.length) + R_('Toplam kazanç', mFmt(t)) + (state.games.slice().reverse().map(g => `<div class="cd"><b>${g.n}</b><span class="s">Gün ${g.day} • Kazanç ${mFmt(g.inc)} • Puan ${g.q}/100</span><div class="bar"><i style="width:${g.q}%"></i></div></div>`).join('') || '<span class="s">Henüz yayımlanmış oyun yok.</span>'); },
+      msgs() { return `<h4>Mesajlar</h4>` + (state.msgs.map((x, i) => `<div class="cd"><b>${x.from}</b> <span class="s">Gün ${x.day}</span>${x.text}${x.offer && !x.done ? `<br><button data-a="acc" data-v="${i}">Teklifi kabul et (+${mFmt(x.offer)})</button>` : ''}</div>`).join('') || '<span class="s">Mesaj yok.</span>'); },
+      set: SET
+    };
+
+    function render(a) {
+      if(a !== 'tetris') stopTetris();
+      $('pt').textContent = 'Gün ' + (((state.day - 1) % 30) + 1) + ' • ' + new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      if(a === 'home') pc.innerHTML = '<div class="hg">' + APPS.map(([id, n, e, c]) => `<button class="ic" data-a="app" data-v="${id}"><i style="background:${c}">${e}</i>${n}</button>`).join('') + '</div>';
+      else pc.innerHTML = V[a]();
+      if(a === 'tetris') initTetris();
+    }
+
+    function openPhone() {
+      if(!gameActive || menuOpen || computerOpen || phoneOpen || pm.style.display === 'flex') return;
+      phoneOpen = true; paused = true;
+      Object.keys(keys).forEach(k => keys[k] = false);
+      wasLocked = false;
+      document.exitPointerLock?.();
+      ph.classList.add('on');
+      render('home');
+    }
+
+    function closePhone() {
+      if(!phoneOpen) return;
+      stopTetris();
+      phoneOpen = false; paused = false;
+      ph.classList.remove('on');
+      lock();
+    }
+
+    if($('cg-phone-btn')) $('cg-phone-btn').onclick = () => phoneOpen ? closePhone() : openPhone();
+
+    bindSet(pc, () => render('set'));
+    ph.addEventListener('click', e => {
+      const b = e.target.closest('[data-a]');
+      if(!b) return;
+      const a = b.dataset.a, v = b.dataset.v;
+      if(a === 'app') render(v);
+      else if(a === 'home') render('home');
+      else if(a === 'shut') closePhone();
+      else if(a === 'snap') takePhoto();
+      else if(a === 'delp') { state.photos.splice(+v, 1); save(); render('gallery'); }
+      else if(a === 'tl') stepTet(-1, 0);
+      else if(a === 'trt') stepTet(1, 0);
+      else if(a === 'td') stepTet(0, 1);
+      else if(a === 'tr') rotateTet();
+      else if(a === 'tnew') initTetris();
+      else if(a === 'hire') { $('cg-hire-worker').click(); toast($('cg-office-status').textContent); render('staff'); }
+      else if(a === 'fire') { const w = state.staff.splice(+v, 1)[0]; state.employees = state.staff.length; updateWorkers(); save(); toast(w.name + ' işten çıkarıldı.'); render('staff'); }
+      else if(a === 'buy') { $(['', 'cg-buy-office', 'cg-buy-office2', 'cg-buy-office3', 'cg-buy-office4'][+v]).click(); toast($('cg-office-status').textContent); save(); render('offices'); }
+      else if(a === 'go') { const k = +v; if(k === 0) leaveOffice(); else if(k === 1) enterOffice(); else if(k === 2) enterOffice2(); else if(k === 3) enterOffice3(); else enterOffice4(); closePhone(); }
+      else if(a === 'dep' || a === 'wd') {
+        if(a === 'dep') { if(state.money < 100) return toast('Yeterli bakiye yok.'); state.money -= 100; state.savings += 100; led('Tasarruf hesabına aktarım', -100); }
+        else { if(state.savings < 100) return toast('Tasarruf hesabında yeterli para yok.'); state.money += 100; state.savings -= 100; led('Tasarruf hesabından çekim', 100); }
+        prevMoney = state.money; save(); render('bank');
+      } else if(a === 'acc') {
+        const x = state.msgs[+v];
+        if(x && !x.done) { x.done = true; state.money += x.offer; led('Sözleşme avansı', x.offer); prevMoney = state.money; save(); toast('Teklif kabul edildi.'); render('msgs'); }
+      }
+    });
+
+    pc.addEventListener('change', e => {
+      const i = e.target.dataset.i;
+      if(i === undefined) return;
+      const w = state.staff[+i];
+      w.role = e.target.value || null;
+      save();
+      render('staff');
+    });
+
+    document.addEventListener('keydown', e => {
+      if(rebind) {
+        e.preventDefault(); e.stopImmediatePropagation();
+        CF.phoneKey = e.code; cfSave(); rebind = false; render('set');
+        return;
+      }
+      if(e.code === CF.phoneKey && !menuOpen) {
+        e.preventDefault(); e.stopImmediatePropagation();
+        phoneOpen ? closePhone() : openPhone();
+      } else if(phoneOpen && tetState && ['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','Space'].includes(e.code)) {
+        e.preventDefault(); e.stopImmediatePropagation();
+        if(e.code === 'ArrowLeft') stepTet(-1, 0);
+        else if(e.code === 'ArrowRight') stepTet(1, 0);
+        else if(e.code === 'ArrowDown') stepTet(0, 1);
+        else if(e.code === 'ArrowUp' || e.code === 'Space') rotateTet();
+      } else if(phoneOpen && (e.code === 'Escape' || e.code === 'KeyE')) {
+        e.stopImmediatePropagation();
+        if(e.code === 'Escape') closePhone();
+      } else if(menuOpen && e.code === 'KeyE') {
+        e.stopImmediatePropagation();
+      }
+    }, true);
+
+    const mb = document.createElement('button');
+    mb.textContent = 'Kaydet ve ana menüye dön';
+    mb.style.cssText = 'margin-top:10px;padding:8px 14px;border:0;border-radius:8px;background:#334155;color:#fff;cursor:pointer';
+    pm.firstChild.append(document.createElement('br'), mb);
+    mb.onclick = () => { save(); location.reload(); };
+
+    // --- ANA ANİMASYON DÖNGÜSÜ ---
+    function tick(now) {
+      requestAnimationFrame(tick);
+      const dt = Math.min((now - last) / 1000, 0.04);
+      last = now;
+      const t = now / 1000;
+
+      if(menuOpen) {
+        // Ana menüde odayı sinematik açıdan göster
+        camera.position.set(1.6, 1.75 + Math.sin(t * 0.35) * 0.06, 2.35);
+        yaw = 0.58 + Math.sin(t * 0.25) * 0.16;
+        pitch = -0.08;
+        updateCamera();
+      }
+
+      if(state.money !== prevMoney) {
+        const d = state.money - prevMoney;
+        prevMoney = state.money;
+        led(d > 0 ? 'Gelir' : 'Harcama (satın alma / işe alım)', d);
+      }
+
+      if(gameActive && !computerOpen && !paused) {
+        // Görev atanmış her çalışan her 5 saniyede bir 50$ kazandırır
+        const activeWorkers = state.staff.filter(w => w.role).length;
+        if(activeWorkers > 0) {
+          state.staffPayTimer = (state.staffPayTimer || 0) + dt;
+          if(state.staffPayTimer >= 5) {
+            const cycles = Math.floor(state.staffPayTimer / 5);
+            state.staffPayTimer -= cycles * 5;
+            const earned = cycles * activeWorkers * 50;
+            state.money += earned;
+            prevMoney = state.money;
+            hud();
+          }
+        }
+
+        if(state.sitting) {
+          state.afkSeconds += dt;
+          if(state.afkSeconds >= 10) {
+            const periods = Math.floor(state.afkSeconds / 10);
+            state.afkSeconds -= periods * 10;
+            const afkGain = periods * 25;
+            state.money += afkGain;
+            $('cg-hint').textContent = '🪑 AFK kazancı: +' + afkGain + '$ • Sandalyeden kalkmak için E';
+            hud();
+            save();
+          }
+        }
+        stepPlayer(dt);
+        const near = nearestTarget();
+        if(near) {
+          let label = 'E — ' + near.label + ' ile etkileşim';
+          if(near.id === 'pc') label = state.hasPC ? 'E — Bilgisayarı kullan' : 'E — İkinci el bilgisayarı satın al (420$)';
+          else if(near.id === 'books') label = 'E — Teknik kitap oku';
+          else if(near.id === 'bed') label = 'E — Dinlen ve günü ilerlet';
+          else if(near.id === 'chair' || near.id.startsWith('bosschair') || near.id === 'mgrchair') label = state.sitting ? 'E — Koltuktan kalk' : 'E — Koltuğa otur / AFK kazancı';
+          else if(near.id === 'radio') label = 'E — Retro radyoyu aç/kapat';
+          else if(near.id === 'coffee' || near.id === 'coffee_vip3') label = 'E — Taze kahve iç (+Enerji & İlham)';
+          else if(near.id === 'lounge') label = 'E — Koltukta dinlen (+Enerji)';
+          else if(near.id === 'door0') label = state.officeOwned ? 'E — 1. Ofise (Indie Stüdyo) gir' : 'E — Yeni ofis satın al';
+          else if(near.id === 'hr' || near.id === 'hr3') label = 'E — Çalışanları ve ofisleri yönet';
+          $('cg-hint').textContent = label;
+        } else {
+          $('cg-hint').textContent = state.sitting
+            ? '🪑 AFK modu: her 10 saniyede +25$ • E ile kalk'
+            : 'WASD • Fare: bakış • Space: zıpla • Shift: koş • E: etkileşim • TAB: telefon';
+        }
+      }
+
+      // Çalışan animasyonları
+      const rm = room();
+      workerModels.forEach((w, i) => {
+        if(!w || !w.visible || (i < 4 ? 1 : i < 8 ? 2 : i < 22 ? 3 : 4) !== rm) return;
+        const wk = state.staff[i], u = w.userData, k = wk && wk.role ? 1 : 0.15;
+        u.arms[0].rotation.x = 1.08 + Math.sin(t * 9 + u.ph) * 0.08 * k;
+        u.arms[1].rotation.x = 1.08 + Math.sin(t * 9 + u.ph + 2) * 0.08 * k;
+        u.head.rotation.y = Math.sin(t * 0.6 + u.ph) * (wk && wk.role ? 0.14 : 0.38);
+        u.torso.rotation.z = Math.sin(t * 0.4 + u.ph) * 0.02;
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    // Başlangıç ayarlarını uygula
+    applyGfx();
+    officeGroup.visible = !!state.officeOwned;
+    office2Group.visible = !!state.office2Owned;
+    off3.visible = !!state.office3Owned;
+    off4.visible = !!state.office4Owned;
+    updateWorkers();
+    crtSetup.screenMesh.material = state.hasPC ? crtScreenOnMat : crtScreenOffMat;
+    if(!state.msgs.length) msg('RED GAMES STUDIO', 'Hoş geldin, ' + state.player + '! Telefonunu TAB ile açabilirsin.');
+    requestAnimationFrame(tick);
+  })();
+  </script>
+ </body>
+</html>

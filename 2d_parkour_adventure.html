@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Parkour Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #090d16;
+            color: #f8fafc;
+            overflow: hidden;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between relative">
+
+    <!-- TOP HUD -->
+    <div id="hud" class="absolute top-0 left-0 w-full p-4 flex justify-between items-center pointer-events-none z-20 hidden">
+        <div class="flex items-center gap-3">
+            <button onclick="togglePause()" class="pointer-events-auto px-4 py-2 glass-panel hover:bg-slate-800 rounded-xl font-bold text-sm shadow-lg transition flex items-center gap-2">
+                <span>⏸</span> <span id="hud-pause">Pause</span>
+            </button>
+            <div id="map-indicator" class="px-4 py-2 glass-panel rounded-xl font-semibold text-xs text-blue-400">Zone 01</div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="px-4 py-2 glass-panel rounded-xl font-bold text-sm text-yellow-400 flex items-center gap-2 shadow-lg">
+                <span>🪙</span> <span id="hud-coins">0</span>
+            </div>
+            <div class="px-4 py-2 glass-panel rounded-xl font-bold text-sm text-emerald-400 flex items-center gap-2 shadow-lg">
+                <span>⏱️</span> <span id="hud-timer">0.0s</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 z-30 p-6">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-25">
+            <div class="absolute w-[600px] h-[600px] bg-blue-600/30 rounded-full blur-3xl -top-32 -left-32 animate-pulse"></div>
+            <div class="absolute w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-3xl -bottom-32 -right-32 animate-pulse"></div>
+        </div>
+        
+        <div class="glass-panel p-8 md:p-12 rounded-3xl max-w-lg w-full text-center shadow-2xl relative z-10 border border-slate-700/50">
+            <h1 id="menu-title" class="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">2D PARKOUR ADVENTURE</h1>
+            <p id="menu-subtitle" class="text-slate-400 text-sm mb-8">Roll, jump, and dash across breathtaking vector worlds!</p>
+            
+            <div class="space-y-4">
+                <button onclick="startGame()" id="btn-start" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 transition transform hover:-translate-y-0.5">Start Expedition</button>
+                <button onclick="openStore()" id="btn-store" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-semibold text-slate-200 transition">Store & Customization</button>
+                <button onclick="openSettings()" id="btn-settings" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 rounded-2xl font-semibold text-slate-200 transition">Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STORE MODAL -->
+    <div id="store-modal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-40 p-4">
+        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full shadow-2xl border border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="store-title" class="text-2xl font-bold text-white">Store & Upgrades</h2>
+                <button onclick="closeStore()" class="text-slate-400 hover:text-white text-xl font-bold px-2 py-1">✕</button>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-yellow-400 flex items-center gap-2"><span>🧪</span> <span id="store-item1-name">2x Coin Flask</span></div>
+                        <div id="store-item1-desc" class="text-xs text-slate-400 mt-0.5">Double all coin earnings permanently!</div>
+                    </div>
+                    <button id="btn-buy-flask" onclick="buyFlask()" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl text-sm transition">1,000 🪙</button>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-red-400 flex items-center gap-2"><span>🔴</span> <span id="store-item2-name">Crimson Sphere</span></div>
+                        <div id="store-item2-desc" class="text-xs text-slate-400 mt-0.5">Sleek ruby red player shader.</div>
+                    </div>
+                    <button id="btn-buy-skin1" onclick="buySkin(1)" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-sm transition">500 🪙</button>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-purple-400 flex items-center gap-2"><span>🟣</span> <span id="store-item3-name">Purple Octahedron</span></div>
+                        <div id="store-item3-desc" class="text-xs text-slate-400 mt-0.5">Futuristic 8-sided crystal geometry.</div>
+                    </div>
+                    <button id="btn-buy-skin2" onclick="buySkin(2)" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-sm transition">1,500 🪙</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-sm font-bold text-slate-300">
+                <span id="store-coins-label">Available Coins:</span>
+                <span id="store-coins-val" class="text-yellow-400">0 🪙</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-40 p-4">
+        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full shadow-2xl border border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="settings-title" class="text-2xl font-bold text-white">Settings & Cheats</h2>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-white text-xl font-bold px-2 py-1">✕</button>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/80">
+                    <span id="settings-lang-label" class="text-sm font-semibold text-slate-300">Language</span>
+                    <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-1.5 text-sm font-bold focus:outline-none">
+                        <option value="en">English</option>
+                        <option value="tr">Türkçe</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/80">
+                    <span id="settings-diff-label" class="text-sm font-semibold text-slate-300">Parkour Difficulty</span>
+                    <select id="diff-select" onchange="changeDifficulty(this.value)" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-1.5 text-sm font-bold focus:outline-none">
+                        <option value="easy">Easy</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+
+                <div class="p-3 rounded-xl bg-red-950/30 border border-red-900/40 space-y-2">
+                    <div id="cheat-header" class="text-xs font-bold text-red-400 uppercase tracking-wider">Developer Cheat</div>
+                    <button onclick="cheatAutoComplete()" id="btn-cheat-complete" class="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-sm transition shadow-md">⚡ Auto-Complete Level</button>
+                </div>
+            </div>
+
+            <button onclick="closeSettings()" id="btn-close-settings" class="w-full py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl text-white transition">Save & Close</button>
+        </div>
+    </div>
+
+    <!-- PAUSE MENU -->
+    <div id="pause-menu" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-40 p-4">
+        <div class="glass-panel p-8 rounded-3xl max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-700">
+            <h2 id="pause-title" class="text-2xl font-bold text-white mb-2">Game Paused</h2>
+            <button onclick="togglePause()" id="btn-resume" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 font-bold rounded-xl text-white transition">Resume</button>
+            <button onclick="returnToMenu()" id="btn-quit" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl text-slate-300 transition">Main Menu</button>
+        </div>
+    </div>
+
+    <!-- WIN MODAL -->
+    <div id="win-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center z-40 p-4">
+        <div class="glass-panel p-8 rounded-3xl max-w-md w-full text-center space-y-4 shadow-2xl border border-slate-700">
+            <div class="text-5xl mb-2">🌀</div>
+            <h2 id="win-title" class="text-3xl font-extrabold text-white">Portal Reached!</h2>
+            <p id="win-desc" class="text-slate-300 text-sm">Amazing run! Stepping through portal to next zone.</p>
+            <div class="py-3 px-4 bg-slate-900/90 rounded-2xl flex justify-around text-sm font-bold">
+                <div><span class="text-slate-400 block text-xs" id="win-time-label">Time</span><span id="win-time" class="text-emerald-400">0.0s</span></div>
+                <div><span class="text-slate-400 block text-xs" id="win-coins-label">Coins Earned</span><span id="win-coins" class="text-yellow-400">0 🪙</span></div>
+            </div>
+            <button onclick="nextLevel()" id="btn-next" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold rounded-2xl text-white shadow-lg transition">Enter Portal ➔</button>
+        </div>
+    </div>
+
+    <!-- CANVAS GAMEPORT -->
+    <canvas id="gameCanvas" class="w-full h-full absolute inset-0 z-10"></canvas>
+
+    <!-- MOBILE CONTROLS -->
+    <div class="absolute bottom-6 left-6 right-6 flex justify-between items-center pointer-events-none z-20 md:hidden">
+        <div class="flex gap-3 pointer-events-auto">
+            <button ontouchstart="setKey('ArrowLeft', true)" ontouchend="setKey('ArrowLeft', false)" class="w-16 h-16 glass-panel active:bg-blue-600/50 rounded-2xl text-2xl flex items-center justify-center font-bold shadow-xl">◀</button>
+            <button ontouchstart="setKey('ArrowRight', true)" ontouchend="setKey('ArrowRight', false)" class="w-16 h-16 glass-panel active:bg-blue-600/50 rounded-2xl text-2xl flex items-center justify-center font-bold shadow-xl">▶</button>
+        </div>
+        <div class="pointer-events-auto">
+            <button ontouchstart="player.jump()" class="w-20 h-20 bg-blue-600/80 active:bg-blue-500 rounded-3xl text-2xl flex items-center justify-center font-bold shadow-2xl border border-blue-400/30">▲</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let gameState = 'MENU'; // MENU, PLAYING, PAUSED, WIN, BOT_PLAY
+        let currentMapIndex = 0;
+        let coinsCollectedThisRun = 0;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let currentDifficulty = 'normal';
+        let currentLang = 'en';
+        let botProgress = 0; // For cheat playthrough mode
+
+        // Load saved state from localStorage if available
+        let playerSave = {
+            coins: 0,
+            hasFlask: false,
+            activeSkin: 0 // 0: Default, 1: Crimson, 2: Purple Octahedron
+        };
+
+        try {
+            const savedData = localStorage.getItem('parkour_adventure_save');
+            if (savedData) {
+                playerSave = JSON.parse(savedData);
+            }
+        } catch (e) {
+            console.warn("Could not load save data", e);
+        }
+
+        function saveGameProgress() {
+            try {
+                localStorage.setItem('parkour_adventure_save', JSON.stringify(playerSave));
+            } catch (e) {
+                console.warn("Could not save data", e);
+            }
+        }
+
+        const translations = {
+            en: {
+                title: "2D PARKOUR ADVENTURE",
+                subtitle: "Roll, jump, and dash across breathtaking vector worlds!",
+                start: "Start Expedition",
+                store: "Store & Customization",
+                settings: "Settings",
+                pause: "Pause",
+                resume: "Resume",
+                quit: "Main Menu",
+                storeTitle: "Store & Upgrades",
+                settingsTitle: "Settings & Cheats",
+                lang: "Language",
+                diff: "Parkour Difficulty",
+                cheatHeader: "Developer Cheat",
+                cheatBtn: "🎬 Watch Bot Pro Speedrun",
+                saveClose: "Save & Close",
+                winTitle: "Portal Reached!",
+                winDesc: "Amazing run! Stepping through portal to next zone.",
+                time: "Time",
+                coinsEarned: "Coins Earned",
+                next: "Enter Portal ➔",
+                flaskName: "2x Coin Flask",
+                flaskDesc: "Double all coin earnings permanently!",
+                skin1Name: "Crimson Sphere",
+                skin1Desc: "Sleek ruby red player shader.",
+                skin2Name: "Purple Octahedron",
+                skin2Desc: "Futuristic 8-sided crystal geometry.",
+                availableCoins: "Available Coins:",
+                purchased: "Purchased",
+                buy: "Buy"
+            },
+            tr: {
+                title: "2D PARKUR MACERASI",
+                subtitle: "Muhteşem vektör dünyalarında yuvarlan, zıpla ve hızla ilerle!",
+                start: "Keşfe Başla",
+                store: "Mağaza ve Özelleştirme",
+                settings: "Ayarlar",
+                pause: "Duraklat",
+                resume: "Devam Et",
+                quit: "Ana Menü",
+                storeTitle: "Mağaza ve Geliştirmeler",
+                settingsTitle: "Ayarlar ve Hileler",
+                lang: "Dil",
+                diff: "Parkour Zorluğu",
+                cheatHeader: "Geliştirici Hilesi",
+                cheatBtn: "🎬 Bot Hızlı Koşu Videosunu İzle",
+                saveClose: "Kaydet ve Kapat",
+                winTitle: "Portala Ulaşıldı!",
+                winDesc: "Harika koşu! Sonraki bölgeye portal üzerinden geçiliyor.",
+                time: "Süre",
+                coinsEarned: "Kazanılan Para",
+                next: "Portaldan Geç ➔",
+                flaskName: "2x Para Şişesi",
+                flaskDesc: "Tüm para kazançlarını kalıcı olarak ikiye katla!",
+                skin1Name: "Kırmızı Top",
+                skin1Desc: "Şık yakut kırmızı oyuncu gölgelendiricisi.",
+                skin2Name: "Mor 8gen Top",
+                skin2Desc: "Fütüristik 8gen kristal geometri.",
+                availableCoins: "Mevcut Para:",
+                purchased: "Alındı",
+                buy: "Satın Al"
+            }
+        };
+
+        const mapsData = [
+            {
+                name: "Zone 01: Skyline Metropolis (Expert)",
+                bgColor: "#090d16",
+                accentColor: "#3b82f6",
+                platColor: "#1e293b",
+                rampColor: "#2563eb",
+                platforms: [
+                    { x: 0, y: 520, w: 900, h: 100 },
+                    { x: 1100, y: 450, w: 220, h: 28 },
+                    { x: 1450, y: 380, w: 200, h: 28 },
+                    { x: 1780, y: 300, w: 180, h: 28 },
+                    { x: 2090, y: 430, w: 240, h: 28 },
+                    { x: 2480, y: 350, w: 190, h: 28 },
+                    { x: 2820, y: 440, w: 210, h: 28 },
+                    { x: 3180, y: 320, w: 190, h: 28 },
+                    { x: 3520, y: 420, w: 220, h: 28 },
+                    { x: 3890, y: 300, w: 180, h: 28 },
+                    { x: 4220, y: 390, w: 200, h: 28 },
+                    { x: 4570, y: 280, w: 190, h: 28 },
+                    { x: 4910, y: 410, w: 210, h: 28 },
+                    { x: 5270, y: 320, w: 190, h: 28 },
+                    { x: 5610, y: 430, w: 200, h: 28 },
+                    { x: 5960, y: 300, w: 180, h: 28 },
+                    { x: 6290, y: 400, w: 210, h: 28 },
+                    { x: 6650, y: 330, w: 190, h: 28 },
+                    { x: 7000, y: 520, w: 3000, h: 100 }
+                ],
+                ramps: [
+                    { x: 800, y: 520, w: 90, h: 35, angle: -0.4 },
+                    { x: 1980, y: 300, w: 90, h: 35, angle: -0.42 },
+                    { x: 3070, y: 320, w: 90, h: 35, angle: -0.4 },
+                    { x: 4110, y: 300, w: 90, h: 35, angle: -0.42 },
+                    { x: 5160, y: 320, w: 90, h: 35, angle: -0.4 }
+                ],
+                coins: [
+                    { x: 350, y: 485, collected: false }, { x: 650, y: 485, collected: false },
+                    { x: 1180, y: 415, collected: false }, { x: 1530, y: 345, collected: false },
+                    { x: 1860, y: 265, collected: false }, { x: 2170, y: 395, collected: false },
+                    { x: 2560, y: 315, collected: false }, { x: 2900, y: 405, collected: false },
+                    { x: 3260, y: 285, collected: false }, { x: 3600, y: 385, collected: false },
+                    { x: 3970, y: 265, collected: false }, { x: 4300, y: 355, collected: false },
+                    { x: 4650, y: 245, collected: false }, { x: 4990, y: 375, collected: false },
+                    { x: 5350, y: 285, collected: false }, { x: 5690, y: 395, collected: false },
+                    { x: 6040, y: 265, collected: false }, { x: 6370, y: 365, collected: false },
+                    { x: 6730, y: 295, collected: false }, { x: 7150, y: 485, collected: false },
+                    { x: 7450, y: 485, collected: false }, { x: 7750, y: 485, collected: false }
+                ],
+                finish: { x: 8200, y: 420 }
+            },
+            {
+                name: "Zone 02: Industrial Abyss (Hardcore)",
+                bgColor: "#0b1329",
+                accentColor: "#6366f1",
+                platColor: "#1e1b4b",
+                rampColor: "#4f46e5",
+                platforms: [
+                    { x: 0, y: 520, w: 850, h: 100 },
+                    { x: 1050, y: 440, w: 200, h: 28 },
+                    { x: 1380, y: 360, w: 180, h: 28 },
+                    { x: 1690, y: 280, w: 160, h: 28 },
+                    { x: 1980, y: 400, w: 200, h: 28 },
+                    { x: 2330, y: 310, w: 180, h: 28 },
+                    { x: 2650, y: 420, w: 190, h: 28 },
+                    { x: 2980, y: 300, w: 170, h: 28 },
+                    { x: 3290, y: 390, w: 200, h: 28 },
+                    { x: 3630, y: 280, w: 180, h: 28 },
+                    { x: 3950, y: 380, w: 190, h: 28 },
+                    { x: 4280, y: 270, w: 170, h: 28 },
+                    { x: 4590, y: 390, w: 200, h: 28 },
+                    { x: 4930, y: 300, w: 180, h: 28 },
+                    { x: 5250, y: 410, w: 190, h: 28 },
+                    { x: 5580, y: 280, w: 170, h: 28 },
+                    { x: 5890, y: 390, w: 200, h: 28 },
+                    { x: 6230, y: 310, w: 180, h: 28 },
+                    { x: 6600, y: 520, w: 3000, h: 100 }
+                ],
+                ramps: [
+                    { x: 760, y: 520, w: 90, h: 35, angle: -0.42 },
+                    { x: 1820, y: 280, w: 90, h: 35, angle: -0.44 },
+                    { x: 2830, y: 300, w: 90, h: 35, angle: -0.42 },
+                    { x: 3800, y: 280, w: 90, h: 35, angle: -0.44 },
+                    { x: 4790, y: 390, w: 90, h: 35, angle: -0.42 }
+                ],
+                coins: [
+                    { x: 350, y: 485, collected: false }, { x: 600, y: 485, collected: false },
+                    { x: 1120, y: 405, collected: false }, { x: 1440, y: 325, collected: false },
+                    { x: 1740, y: 245, collected: false }, { x: 2060, y: 365, collected: false },
+                    { x: 2400, y: 275, collected: false }, { x: 2730, y: 385, collected: false },
+                    { x: 3050, y: 265, collected: false }, { x: 3370, y: 355, collected: false },
+                    { x: 3700, y: 245, collected: false }, { x: 4020, y: 345, collected: false },
+                    { x: 4350, y: 235, collected: false }, { x: 4670, y: 355, collected: false },
+                    { x: 5010, y: 265, collected: false }, { x: 5330, y: 375, collected: false },
+                    { x: 5660, y: 245, collected: false }, { x: 5970, y: 355, collected: false },
+                    { x: 6310, y: 275, collected: false }, { x: 6750, y: 485, collected: false },
+                    { x: 7050, y: 485, collected: false }, { x: 7350, y: 485, collected: false }
+                ],
+                finish: { x: 7800, y: 420 }
+            },
+            {
+                name: "Zone 03: Sunset Pinnacle (Insane)",
+                bgColor: "#140a1f",
+                accentColor: "#10b981",
+                platColor: "#064e3b",
+                rampColor: "#059669",
+                platforms: [
+                    { x: 0, y: 520, w: 850, h: 100 },
+                    { x: 1050, y: 430, w: 190, h: 28 },
+                    { x: 1370, y: 350, w: 170, h: 28 },
+                    { x: 1670, y: 260, w: 150, h: 28 },
+                    { x: 1950, y: 390, w: 190, h: 28 },
+                    { x: 2280, y: 300, w: 170, h: 28 },
+                    { x: 2590, y: 410, w: 180, h: 28 },
+                    { x: 2910, y: 290, w: 160, h: 28 },
+                    { x: 3210, y: 380, w: 190, h: 28 },
+                    { x: 3540, y: 270, w: 170, h: 28 },
+                    { x: 3850, y: 370, w: 180, h: 28 },
+                    { x: 4170, y: 260, w: 160, h: 28 },
+                    { x: 4470, y: 380, w: 190, h: 28 },
+                    { x: 4800, y: 290, w: 170, h: 28 },
+                    { x: 5110, y: 400, w: 180, h: 28 },
+                    { x: 5430, y: 270, w: 160, h: 28 },
+                    { x: 5730, y: 380, w: 190, h: 28 },
+                    { x: 6060, y: 300, w: 170, h: 28 },
+                    { x: 6400, y: 520, w: 3000, h: 100 }
+                ],
+                ramps: [
+                    { x: 760, y: 520, w: 90, h: 35, angle: -0.42 },
+                    { x: 1790, y: 260, w: 90, h: 35, angle: -0.45 },
+                    { x: 2750, y: 290, w: 90, h: 35, angle: -0.42 },
+                    { x: 3710, y: 270, w: 90, h: 35, angle: -0.45 },
+                    { x: 4650, y: 380, w: 90, h: 35, angle: -0.42 }
+                ],
+                coins: [
+                    { x: 350, y: 485, collected: false }, { x: 600, y: 485, collected: false },
+                    { x: 1110, y: 395, collected: false }, { x: 1420, y: 315, collected: false },
+                    { x: 1720, y: 225, collected: false }, { x: 2010, y: 355, collected: false },
+                    { x: 2340, y: 265, collected: false }, { x: 2650, y: 375, collected: false },
+                    { x: 2970, y: 255, collected: false }, { x: 3270, y: 345, collected: false },
+                    { x: 3600, y: 235, collected: false }, { x: 3910, y: 335, collected: false },
+                    { x: 4230, y: 225, collected: false }, { x: 4530, y: 345, collected: false },
+                    { x: 4860, y: 255, collected: false }, { x: 5170, y: 365, collected: false },
+                    { x: 5490, y: 235, collected: false }, { x: 5790, y: 345, collected: false },
+                    { x: 6120, y: 265, collected: false }, { x: 6550, y: 485, collected: false },
+                    { x: 6850, y: 485, collected: false }, { x: 7150, y: 485, collected: false }
+                ],
+                finish: { x: 7600, y: 420 }
+            },
+            {
+                name: "Zone 04: Obsidian Inferno (Ultimate)",
+                bgColor: "#1a0808",
+                accentColor: "#f43f5e",
+                platColor: "#4c0519",
+                rampColor: "#e11d48",
+                platforms: [
+                    { x: 0, y: 520, w: 800, h: 100 },
+                    { x: 1000, y: 420, w: 180, h: 28 },
+                    { x: 1310, y: 330, w: 160, h: 28 },
+                    { x: 1590, y: 240, w: 140, h: 28 },
+                    { x: 1850, y: 370, w: 180, h: 28 },
+                    { x: 2160, y: 280, w: 160, h: 28 },
+                    { x: 2450, y: 390, w: 170, h: 28 },
+                    { x: 2750, y: 270, w: 150, h: 28 },
+                    { x: 3030, y: 360, w: 180, h: 28 },
+                    { x: 3340, y: 250, w: 160, h: 28 },
+                    { x: 3630, y: 350, w: 170, h: 28 },
+                    { x: 3930, y: 240, w: 150, h: 28 },
+                    { x: 4210, y: 360, w: 180, h: 28 },
+                    { x: 4520, y: 270, w: 160, h: 28 },
+                    { x: 4810, y: 380, w: 170, h: 28 },
+                    { x: 5110, y: 250, w: 150, h: 28 },
+                    { x: 5390, y: 360, w: 180, h: 28 },
+                    { x: 5700, y: 280, w: 160, h: 28 },
+                    { x: 6050, y: 520, w: 3000, h: 100 }
+                ],
+                ramps: [
+                    { x: 710, y: 520, w: 90, h: 35, angle: -0.45 },
+                    { x: 1690, y: 240, w: 90, h: 35, angle: -0.48 },
+                    { x: 2610, y: 270, w: 90, h: 35, angle: -0.45 },
+                    { x: 3530, y: 250, w: 90, h: 35, angle: -0.48 },
+                    { x: 4410, y: 360, w: 90, h: 35, angle: -0.45 }
+                ],
+                coins: [
+                    { x: 330, y: 485, collected: false }, { x: 580, y: 485, collected: false },
+                    { x: 1060, y: 385, collected: false }, { x: 1360, y: 295, collected: false },
+                    { x: 1640, y: 205, collected: false }, { x: 1910, y: 335, collected: false },
+                    { x: 2220, y: 245, collected: false }, { x: 2510, y: 355, collected: false },
+                    { x: 2810, y: 235, collected: false }, { x: 3090, y: 325, collected: false },
+                    { x: 3400, y: 215, collected: false }, { x: 3690, y: 315, collected: false },
+                    { x: 3990, y: 205, collected: false }, { x: 4270, y: 325, collected: false },
+                    { x: 4580, y: 235, collected: false }, { x: 4870, y: 345, collected: false },
+                    { x: 5170, y: 215, collected: false }, { x: 5450, y: 325, collected: false },
+                    { x: 5760, y: 245, collected: false }, { x: 6200, y: 485, collected: false },
+                    { x: 6500, y: 485, collected: false }, { x: 6800, y: 485, collected: false }
+                ],
+                finish: { x: 7200, y: 420 }
+            }
+        ];
+
+        const player = {
+            x: 100,
+            y: 300,
+            radius: 20,
+            vx: 0,
+            vy: 0,
+            speed: 7.5,
+            jumpForce: -14.8,
+            gravity: 0.65,
+            grounded: false,
+            jumpsLeft: 2,
+            rotationAngle: 0,
+
+            reset(startX, startY) {
+                this.x = startX;
+                this.y = startY;
+                this.vx = 0;
+                this.vy = 0;
+                this.grounded = false;
+                this.jumpsLeft = 2;
+                this.rotationAngle = 0;
+            },
+
+            update() {
+                let speedMod = 1.0;
+                if (currentDifficulty === 'normal') speedMod = 1.2;
+                if (currentDifficulty === 'hard') speedMod = 1.4;
+
+                if (gameState === 'BOT_PLAY') {
+                    // Bot auto navigation simulation
+                    const map = mapsData[currentMapIndex];
+                    this.vx = this.speed * speedMod * 1.35;
+                    this.rotationAngle += 0.2;
+                    botProgress += this.vx;
+
+                    // Automatic jump triggers at ramp or platform gaps
+                    if (this.grounded && (Math.random() < 0.08 || botProgress > 400)) {
+                        this.vy = this.jumpForce;
+                        this.grounded = false;
+                        botProgress = 0;
+                    }
+                    
+                    this.x += this.vx;
+                    this.vy += this.gravity;
+                    this.y += this.vy;
+
+                    // Collect coins automatically during bot run
+                    map.coins.forEach(c => {
+                        if (!c.collected && Math.hypot(this.x - c.x, this.y - c.y) < 50) {
+                            c.collected = true;
+                            let val = 10;
+                            if (playerSave.hasFlask) val *= 2;
+                            coinsCollectedThisRun += val;
+                        }
+                    });
+
+                    // Check finish portal
+                    if (this.x >= map.finish.x - 20) {
+                        gameState = 'WIN';
+                        triggerWin();
+                    }
+                    return;
+                }
+
+                if (keys['KeyA'] || keys['ArrowLeft']) {
+                    this.vx = -this.speed * speedMod;
+                    this.rotationAngle -= 0.18;
+                } else if (keys['KeyD'] || keys['ArrowRight']) {
+                    this.vx = this.speed * speedMod;
+                    this.rotationAngle += 0.18;
+                } else {
+                    this.vx *= 0.82;
+                }
+
+                this.x += this.vx;
+                this.vy += this.gravity;
+                this.y += this.vy;
+                this.grounded = false;
+            },
+
+            jump() {
+                if (this.jumpsLeft > 0 && gameState === 'PLAYING') {
+                    this.vy = this.jumpForce;
+                    this.jumpsLeft--;
+                    this.grounded = false;
+                }
+            },
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotationAngle);
+
+                // Polished 3D-shaded Blue Player Sphere with specular gleam
+                ctx.fillStyle = '#2563eb';
+                ctx.strokeStyle = '#1e40af';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Specular highlight gleam
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+                ctx.beginPath();
+                ctx.arc(-6, -6, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        };
+
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                if (gameState === 'PLAYING') {
+                    player.jump();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        function startGame() {
+            gameState = 'PLAYING';
+            currentMapIndex = 0;
+            coinsCollectedThisRun = 0;
+            startTime = Date.now();
+            
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            
+            loadMap(currentMapIndex);
+        }
+
+        function loadMap(index) {
+            if (index >= mapsData.length) {
+                index = mapsData.length - 1;
+            }
+            currentMapIndex = index;
+            const map = mapsData[currentMapIndex];
+            
+            map.coins.forEach(c => c.collected = false);
+            player.reset(100, 300);
+            document.getElementById('map-indicator').innerText = map.name;
+        }
+
+        function nextLevel() {
+            document.getElementById('win-modal').classList.add('hidden');
+            currentMapIndex++;
+            if (currentMapIndex >= mapsData.length) {
+                currentMapIndex = 0;
+            }
+            loadMap(currentMapIndex);
+            gameState = 'PLAYING';
+            startTime = Date.now();
+        }
+
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                document.getElementById('pause-menu').classList.remove('hidden');
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                document.getElementById('pause-menu').classList.add('hidden');
+            }
+        }
+
+        function returnToMenu() {
+            gameState = 'MENU';
+            document.getElementById('pause-menu').classList.add('hidden');
+            document.getElementById('win-modal').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        function openStore() {
+            document.getElementById('store-modal').classList.remove('hidden');
+            updateStoreUI();
+        }
+
+        function closeStore() {
+            document.getElementById('store-modal').classList.add('hidden');
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            if (!t) return;
+
+            document.getElementById('menu-title').innerText = t.title;
+            document.getElementById('menu-subtitle').innerText = t.subtitle;
+            document.getElementById('btn-start').innerText = t.start;
+            document.getElementById('btn-store').innerText = t.store;
+            document.getElementById('btn-settings').innerText = t.settings;
+            document.getElementById('hud-pause').innerText = t.pause;
+            document.getElementById('store-title').innerText = t.storeTitle;
+            document.getElementById('settings-title').innerText = t.settingsTitle;
+            document.getElementById('settings-lang-label').innerText = t.lang;
+            document.getElementById('settings-diff-label').innerText = t.diff;
+            document.getElementById('cheat-header').innerText = t.cheatHeader;
+            document.getElementById('btn-cheat-complete').innerText = t.cheatBtn;
+            document.getElementById('btn-close-settings').innerText = t.saveClose;
+            document.getElementById('pause-title').innerText = t.settingsTitle;
+            document.getElementById('btn-resume').innerText = t.resume;
+            document.getElementById('btn-quit').innerText = t.quit;
+            document.getElementById('win-title').innerText = t.winTitle;
+            document.getElementById('win-desc').innerText = t.winDesc;
+            document.getElementById('win-time-label').innerText = t.time;
+            document.getElementById('win-coins-label').innerText = t.coinsEarned;
+            document.getElementById('btn-next').innerText = t.next;
+            document.getElementById('store-item1-name').innerText = t.flaskName;
+            document.getElementById('store-item1-desc').innerText = t.flaskDesc;
+            document.getElementById('store-item2-name').innerText = t.skin1Name;
+            document.getElementById('store-item2-desc').innerText = t.skin1Desc;
+            document.getElementById('store-coins-label').innerText = t.availableCoins;
+        }
+
+        function changeDifficulty(diff) {
+            currentDifficulty = diff;
+        }
+
+        function cheatAutoComplete() {
+            closeSettings();
+            // Start Bot Speedrun Playthrough mode
+            if (gameState === 'MENU') {
+                startGame();
+            }
+            gameState = 'BOT_PLAY';
+            botProgress = 0;
+            player.reset(100, 300);
+            player.vy = -8;
+        }
+
+        function updateStoreUI() {
+            document.getElementById('store-coins-val').innerText = playerSave.coins + ' 🪙';
+            const flaskBtn = document.getElementById('btn-buy-flask');
+            if (playerSave.hasFlask) {
+                flaskBtn.innerText = translations[currentLang].purchased || 'Purchased';
+                flaskBtn.disabled = true;
+                flaskBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function buyFlask() {
+            if (!playerSave.hasFlask && playerSave.coins >= 1000) {
+                playerSave.coins -= 1000;
+                playerSave.hasFlask = true;
+                saveGameProgress();
+                updateStoreUI();
+            }
+        }
+
+        function buySkin(id) {
+            let cost = id === 1 ? 500 : 1500;
+            if (playerSave.coins >= cost) {
+                playerSave.coins -= cost;
+                playerSave.activeSkin = id;
+                saveGameProgress();
+                updateStoreUI();
+            }
+        }
+
+        function triggerWin() {
+            gameState = 'WIN';
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            document.getElementById('win-time').innerText = elapsed + 's';
+            document.getElementById('win-coins').innerText = coinsCollectedThisRun + ' 🪙';
+            playerSave.coins += coinsCollectedThisRun;
+            saveGameProgress();
+            document.getElementById('win-modal').classList.remove('hidden');
+        }
+
+        function updateGame() {
+            if (gameState !== 'PLAYING' && gameState !== 'BOT_PLAY') return;
+
+            player.update();
+            if (gameState === 'PLAYING') {
+                elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                document.getElementById('hud-timer').innerText = elapsedTime + 's';
+            }
+            document.getElementById('hud-coins').innerText = playerSave.coins + coinsCollectedThisRun;
+
+            const map = mapsData[currentMapIndex];
+
+            // Platform collisions & Ramps
+            map.platforms.forEach(p => {
+                if (
+                    player.x + player.radius > p.x &&
+                    player.x - player.radius < p.x + p.w &&
+                    player.y + player.radius >= p.y &&
+                    player.y - player.radius < p.y + p.h &&
+                    player.vy >= 0
+                ) {
+                    player.y = p.y - player.radius;
+                    player.vy = 0;
+                    player.grounded = true;
+                    player.jumpsLeft = 2;
+                }
+            });
+
+            map.ramps.forEach(r => {
+                if (
+                    player.x + player.radius > r.x &&
+                    player.x - player.radius < r.x + r.w &&
+                    player.y + player.radius >= r.y &&
+                    player.y - player.radius < r.y + r.h
+                ) {
+                    player.vy = -13.5;
+                    player.vx += 5;
+                }
+            });
+
+            // Coin pickups
+            map.coins.forEach(c => {
+                if (!c.collected) {
+                    const dist = Math.hypot(player.x - c.x, player.y - c.y);
+                    if (dist < player.radius + 15) {
+                        c.collected = true;
+                        let val = 10;
+                        if (playerSave.hasFlask) val *= 2;
+                        coinsCollectedThisRun += val;
+                    }
+                }
+            });
+
+            // Portal finish check
+            const f = map.finish;
+            const finishDist = Math.hypot(player.x - f.x, player.y - f.y);
+            if (finishDist < 45) {
+                triggerWin();
+            }
+
+            // Fall off bounds reset
+            if (player.y > canvas.height + 250) {
+                player.reset(100, 300);
+            }
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const map = mapsData[currentMapIndex];
+
+            ctx.fillStyle = map.bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            let camX = player.x - canvas.width / 3;
+            if (camX < 0) camX = 0;
+            ctx.translate(-camX, 0);
+
+            // Draw Platforms
+            ctx.fillStyle = map.platColor;
+            map.platforms.forEach(p => {
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+            });
+
+            // Draw Ramps
+            ctx.fillStyle = map.rampColor;
+            map.ramps.forEach(r => {
+                ctx.beginPath();
+                ctx.moveTo(r.x, r.y + r.h);
+                ctx.lineTo(r.x + r.w, r.y);
+                ctx.lineTo(r.x + r.w, r.y + r.h);
+                ctx.closePath();
+                ctx.fill();
+            });
+
+            // Draw Coins
+            map.coins.forEach(c => {
+                if (!c.collected) {
+                    ctx.save();
+                    ctx.translate(c.x, c.y);
+
+                    ctx.fillStyle = '#eab308';
+                    ctx.strokeStyle = '#ca8a04';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.restore();
+                }
+            });
+
+            // Draw Finish Portal
+            const f = map.finish;
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, 40, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, 30, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw Player
+            player.draw();
+
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
